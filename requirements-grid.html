@@ -8,54 +8,61 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/bin-packing-grid/dist/bin-packing-grid.html">
+<link rel="import" href="bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="bower_components/paper-card/paper-card.html">
 
 <!--
-An element providing a solution to no problem in particular.
+An element providing a solution to nothing in particular.
 
 Example:
 
-    <ideas-grid></ideas-grid>
+    <requirements-grid></requirements-grid>
 
 Example:
 
-    <ideas-grid>
-      <h2>Hello ideas-grid</h2>
-    </ideas-grid>
+    <requirements-grid></requirements-grid>
 
 @demo demo/index.html
 @hero hero.svg
 -->
 
-<dom-module id="ideas-grid">
+<dom-module id="requirements-grid">
   <template>
     <style>
-      :host {
-        display: block;
-        box-sizing: border-box;
-      }
-
-      .author img {
-        display: block;
-        float: left;
-        margin-right: 5px;
-        max-height: 100px;
-        max-width: 100px;
+      paper-card {
+        width: auto;
+        height: 100%;
       }
     </style>
 
-    <h1>&lt;ideas-grid&gt;</h1>
-    <content></content>
-    <p class="author">
-      <img src$="{{author.image}}">
-      Cheers,<br/>
-      <span class="name">{{author.name}}</span>
-    </p>
+    <iron-ajax
+            auto
+            url="https://requirements-bazaar.org/bazaar/projects/"
+            params='{"page":"0", "per_page":"10"}'
+            handle-as="json"
+            last-response="{{data}}">
+    </iron-ajax>
+
+    <bin-packing-grid cell-size="100" gutter-size="10">
+      <template is="dom-repeat" items="[[data]]">
+          <bin-packing-item detect-size>
+            <paper-card heading="{{item.name}}">
+              <div class="card-content">{{item.description}}</div>
+              <div class="card-actions">
+                <paper-button>Last Updated: {{item.lastupdated_time}}</paper-button>
+              </div>
+            </paper-card>
+          </bin-packing-item>
+      </template>
+    </bin-packing-grid>
+
   </template>
 
   <script>
     Polymer({
-      is: 'ideas-grid',
+      is: 'requirements-grid',
 
       properties: {
         /**
@@ -83,8 +90,8 @@ Example:
           // prototype).
           value: function() {
             return {
-              name:  'Dimitri Glazkov',
-              image: 'http://addyosmani.com/blog/wp-content/uploads/2013/04/unicorn.jpg',
+              name:  'Albi Sema',
+              email: 'albi.sema@rwth-aachen.de',
             };
           }
         },
@@ -133,7 +140,7 @@ Example:
       /**
        * The `ideas-grid-lasers` event is fired whenever `fireLasers` is called.
        *
-       * @event ideas-grid-lasers
+       * @event requirements-grid-lasers
        * @detail {{sound: String}}
        */
 

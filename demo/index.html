@@ -14,35 +14,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
     <title>ideas-grid Demo</title>
     <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
-    <link rel="import" href="../ideas-grid.html">
+    <link rel="import" href="../requirements-grid.html">
   </head>
   <body unresolved>
 
-    <p>An example of <code>&lt;ideas-grid&gt;</code>:</p>
+    <p>An example of <code>&lt;requirements-grid&gt;</code>:</p>
 
-    <p>Make words! <button id="saybtn">Say Something</button></p>
-    <p>Make lasers! <button id="laserbtn">Fire lasers</button></p>
-
-    <ideas-grid author='{"name": "Lord Meowser", "image": "http://lorempixel.com/g/300/200/cats/"}' fancy>
-      <h2>Hello ideas-grid</h2>
-    </ideas-grid>
-
-    <script>
-      var seedElement = document.querySelector('ideas-grid');
-
-      document.querySelector('#saybtn').addEventListener('click', function() {
-        alert(seedElement.sayHello('Hallo!'));
-      });
-
-      document.querySelector('#laserbtn').addEventListener('click', function() {
-        seedElement.fireLasers();
-      });
-
-      document.addEventListener("ideas-grid-lasers", function(e) {
-        console.log(e.detail.sound);
-      });
-
-    </script>
+    <requirements-grid></requirements-grid>
 
   </body>
 </html>

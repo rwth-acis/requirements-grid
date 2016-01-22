@@ -1,5 +1,5 @@
 {
-  "name": "ideas-grid",
+  "name": "requirements-grid",
   "version": "1.0.7",
   "authors": [
     "Albi <albi.sema@rwth-aachen.de>"
@@ -18,7 +18,12 @@
     "/test/"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#^1.2.0"
+    "polymer": "Polymer/polymer#^1.2.0",
+    "bin-packing-grid": "~0.2.3",
+    "paper-card": "PolymerElements/paper-card#~1.0.9",
+    "juicy-tile-list": "~1.2.0",
+    "mason-ry": "~0.1.1",
+    "iron-media-query": "PolymerElements/iron-media-query#~1.0.8"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
