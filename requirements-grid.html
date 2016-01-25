@@ -8,10 +8,11 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 
-<link rel="import" href="bower_components/polymer/polymer.html">
-<link rel="import" href="bower_components/bin-packing-grid/dist/bin-packing-grid.html">
-<link rel="import" href="bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="bower_components/paper-card/paper-card.html">
+<link rel="import" href="../polymer/polymer.html">
+<!--<link rel="import" href="../bin-packing-grid/dist/bin-packing-grid.html">-->
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../paper-card/paper-card.html">
+<link rel="import" href="../masonry-layout/masonry-layout.html">
 
 <!--
 An element providing a solution to nothing in particular.
@@ -32,8 +33,7 @@ Example:
   <template>
     <style>
       paper-card {
-        width: auto;
-        height: 100%;
+        max-width: 200px;
       }
     </style>
 
@@ -45,6 +45,21 @@ Example:
             last-response="{{data}}">
     </iron-ajax>
 
+
+    <masonry-layout id="grids" column-width="200">
+      <template is="dom-repeat" items="[[data]]">
+        <div class="grid-item">
+          <paper-card heading="{{item.name}}">
+            <div class="card-content">{{item.description}}</div>
+            <div class="card-actions">
+              <paper-button>Last Updated: {{item.lastupdated_time}}</paper-button>
+            </div>
+          </paper-card>
+        </div>
+      </template>
+    </masonry-layout>
+
+<!--
     <bin-packing-grid cell-size="100" gutter-size="10">
       <template is="dom-repeat" items="[[data]]">
           <bin-packing-item detect-size>
@@ -57,6 +72,7 @@ Example:
           </bin-packing-item>
       </template>
     </bin-packing-grid>
+-->
 
   </template>
 

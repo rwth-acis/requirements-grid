@@ -19,11 +19,8 @@
   ],
   "dependencies": {
     "polymer": "Polymer/polymer#^1.2.0",
-    "bin-packing-grid": "~0.2.3",
     "paper-card": "PolymerElements/paper-card#~1.0.9",
-    "juicy-tile-list": "~1.2.0",
-    "mason-ry": "~0.1.1",
-    "iron-media-query": "PolymerElements/iron-media-query#~1.0.8"
+    "masonry-layout": "~1.0.4"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
