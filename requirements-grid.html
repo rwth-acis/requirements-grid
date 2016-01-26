@@ -16,7 +16,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../paper-button/paper-button.html">
 
 <!--
-An element providing a solution to nothing in particular.
+An element that gets url with attributes and fetches data in a masonry layout with pagination
 
 Example:
 
@@ -24,10 +24,11 @@ Example:
 
 Example:
 
-    <requirements-grid></requirements-grid>
+    <requirements-grid
+            url="https://requirements-bazaar.org/bazaar/components/203/requirements"
+            page="0" per-page="10">
+    </requirements-grid>
 
-@demo demo/index.html
-@hero hero.svg
 -->
 
 <dom-module id="requirements-grid">
@@ -68,21 +69,6 @@ Example:
 
     <paper-button raised on-tap="previousPage">Previous Page</paper-button>
     <paper-button raised on-tap="nextPage">Next Page</paper-button>
-
-<!--
-    <bin-packing-grid cell-size="100" gutter-size="10">
-      <template is="dom-repeat" items="[[data]]">
-          <bin-packing-item detect-size>
-            <paper-card heading="{{item.name}}">
-              <div class="card-content">{{item.description}}</div>
-              <div class="card-actions">
-                <paper-button>Last Updated: {{item.lastupdated_time}}</paper-button>
-              </div>
-            </paper-card>
-          </bin-packing-item>
-      </template>
-    </bin-packing-grid>
--->
 
   </template>
 
