@@ -39,8 +39,8 @@ Example:
 
     <iron-ajax
             auto
-            url="https://requirements-bazaar.org/bazaar/projects/"
-            params='{"page":"0", "per_page":"10"}'
+            url="https://requirements-bazaar.org/bazaar/components/203/requirements"
+            params='{"page":"0", "per_page":"30"}'
             handle-as="json"
             last-response="{{data}}">
     </iron-ajax>
@@ -49,10 +49,10 @@ Example:
     <masonry-layout id="grids" column-width="200">
       <template is="dom-repeat" items="[[data]]">
         <div class="grid-item">
-          <paper-card heading="{{item.name}}">
+          <paper-card heading="{{item.title}}">
             <div class="card-content">{{item.description}}</div>
             <div class="card-actions">
-              <paper-button>Last Updated: {{item.lastupdated_time}}</paper-button>
+              <paper-button>Last Updated: {{item.creation_time}}</paper-button>
             </div>
           </paper-card>
         </div>
