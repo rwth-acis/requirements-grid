@@ -14,6 +14,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../paper-card/paper-card.html">
 <link rel="import" href="../masonry-layout/masonry-layout.html">
 <link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../sc-timeago/sc-timeago.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
 
 <!--
 An element that gets url with attributes and fetches data in a masonry layout with pagination
@@ -28,7 +30,7 @@ Example:
             url="https://requirements-bazaar.org/bazaar/components/203/requirements"
             page="0" per-page="10">
     </requirements-grid>
-
+@demo demo/index.html
 -->
 
 <dom-module id="requirements-grid">
@@ -43,6 +45,16 @@ Example:
       paper-button{
         margin:10px;
       }
+      a {
+        color:inherit;
+        background-color: inherit;
+      }
+      .time {
+        display: block;
+        font-style: italic;
+        float: right;
+        padding-right: 5px;
+      }
     </style>
 
     <iron-ajax id="ajax"
@@ -56,14 +68,23 @@ Example:
 
     <masonry-layout id="grids" column-width="200">
       <template is="dom-repeat" items="[[data]]">
+        <a href="" target="_blank">
         <div class="grid-item">
-          <paper-card heading="{{item.title}}" elevation="1" on-mouseover="elevateCard" on-mouseout="demoteCard">
+          <paper-card heading="{{item.title}}" >
+            <sc-timeago class="time" datetime="{{item.creation_time}}"></sc-timeago>
             <div class="card-content">{{item.description}}</div>
             <div class="card-actions">
-              <paper-button>Last Updated: {{item.creation_time}}</paper-button>
+              <paper-button>
+                <iron-icon icon="thumb-up"></iron-icon>
+                {{item.upVotes}}
+                <iron-icon icon="thumb-down"></iron-icon>
+                {{item.downVotes}}
+
+              </paper-button>
             </div>
           </paper-card>
         </div>
+        </a>
       </template>
     </masonry-layout>
 
@@ -107,14 +128,6 @@ Example:
       previousPage: function(){
         this.page = this.page - 1;
         this.$.ajax.generateRequest();
-      },
-
-      elevateCard: function(event) {
-        event.srcElement._composedParent.setAttribute('elevation', 4);
-      },
-
-      demoteCard: function(event) {
-        event.srcElement._composedParent.setAttribute('elevation', 1);
       }
 
     });
