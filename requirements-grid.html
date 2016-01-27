@@ -57,7 +57,7 @@ Example:
     <masonry-layout id="grids" column-width="200">
       <template is="dom-repeat" items="[[data]]">
         <div class="grid-item">
-          <paper-card heading="{{item.title}}">
+          <paper-card heading="{{item.title}}" elevation="1" on-mouseover="elevateCard" on-mouseout="demoteCard">
             <div class="card-content">{{item.description}}</div>
             <div class="card-actions">
               <paper-button>Last Updated: {{item.creation_time}}</paper-button>
@@ -107,6 +107,14 @@ Example:
       previousPage: function(){
         this.page = this.page - 1;
         this.$.ajax.generateRequest();
+      },
+
+      elevateCard: function(event) {
+        event.srcElement._composedParent.setAttribute('elevation', 4);
+      },
+
+      demoteCard: function(event) {
+        event.srcElement._composedParent.setAttribute('elevation', 1);
       }
 
     });
