@@ -16,6 +16,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../sc-timeago/sc-timeago.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
+<script src="../time-elements/time-elements.js"></script>
 
 <!--
 An element that gets url with attributes and fetches data in a masonry layout with pagination
@@ -70,16 +71,15 @@ Example:
       <template is="dom-repeat" items="[[data]]">
         <a href="" target="_blank">
         <div class="grid-item">
-          <paper-card heading="{{item.title}}" >
-            <sc-timeago class="time" datetime="{{item.creation_time}}"></sc-timeago>
+          <paper-card heading="{{item.title}}">
+            <time is="relative-time" class="time"
+                  datetime$="[[item.creation_time]]">
+              </time>
             <div class="card-content">{{item.description}}</div>
             <div class="card-actions">
               <paper-button>
-                <iron-icon icon="thumb-up"></iron-icon>
+                <iron-icon icon="star"></iron-icon>
                 {{item.upVotes}}
-                <iron-icon icon="thumb-down"></iron-icon>
-                {{item.downVotes}}
-
               </paper-button>
             </div>
           </paper-card>
