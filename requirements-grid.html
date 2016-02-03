@@ -64,6 +64,7 @@ Example:
             url="{{url}}"
             params='{{options}}'
             handle-as="json"
+            on-response="_hasEnoughItems"
             last-response="{{data}}">
     </iron-ajax>
 
@@ -89,8 +90,8 @@ Example:
       </template>
     </masonry-layout>
 
-    <paper-button raised on-tap="previousPage">Previous Page</paper-button>
-    <paper-button raised on-tap="nextPage">Next Page</paper-button>
+    <paper-button id="previous" raised on-tap="previousPage">Previous Page</paper-button>
+    <paper-button id="next" raised on-tap="nextPage">Next Page</paper-button>
 
   </template>
 
@@ -105,10 +106,12 @@ Example:
           notify: true
         },
         page: {
+          type: Number,
           value: 0,
           notify: true
         },
         perPage: {
+          type: Number,
           value:10,
           notify: true
         },
@@ -133,6 +136,14 @@ Example:
       previousPage: function(){
         this.page = this.page - 1;
         this.$.ajax.generateRequest();
+      },
+
+      _hasEnoughItems: function(){
+        if (this.data != null){
+          if (this.data.length != this.perPage){
+            this.$.next.style.display = "none";
+          }
+        }
       }
 
     });
