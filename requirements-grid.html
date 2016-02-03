@@ -9,6 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../polymer/polymer.html">
+<script src="bower_components/webcomponentsjs/webcomponents.js"></script>
 <!--<link rel="import" href="../bin-packing-grid/dist/bin-packing-grid.html">-->
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../paper-card/paper-card.html">
@@ -114,6 +115,10 @@ Example:
         options: {
           computed: 'computeOptions(page, perPage)'
         }
+      },
+
+      ready: function(){
+        this.$.ajax.generateRequest();
       },
 
       computeOptions: function (page, perPage){
