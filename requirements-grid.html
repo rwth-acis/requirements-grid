@@ -108,7 +108,8 @@ Example:
         page: {
           type: Number,
           value: 0,
-          notify: true
+          notify: true,
+          observer: '_notFirstPage'
         },
         perPage: {
           type: Number,
@@ -142,8 +143,18 @@ Example:
         if (this.data != null){
           if (this.data.length != this.perPage){
             this.$.next.style.display = "none";
+
           }
+          else
+            this.$.next.style.display = "inline-block";
         }
+      },
+
+      _notFirstPage: function(){
+        if (this.page == 0){
+          this.$.previous.style.display = "none";
+        } else
+        this.$.previous.style.display = "inline-block";
       }
 
     });
