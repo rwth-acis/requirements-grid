@@ -142,19 +142,19 @@ Example:
       _hasEnoughItems: function(){
         if (this.data != null){
           if (this.data.length != this.perPage){
-            this.$.next.style.display = "none";
+            this.$.next.disabled = true;
 
           }
           else
-            this.$.next.style.display = "inline-block";
+            this.$.next.disabled = false;
         }
       },
 
       _notFirstPage: function(){
         if (this.page == 0){
-          this.$.previous.style.display = "none";
+          this.$.previous.disabled = true;
         } else
-        this.$.previous.style.display = "inline-block";
+          this.$.previous.disabled = false;
       }
 
     });
