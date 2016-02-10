@@ -15,7 +15,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../paper-card/paper-card.html">
 <link rel="import" href="../masonry-layout/masonry-layout.html">
 <link rel="import" href="../paper-button/paper-button.html">
-<link rel="import" href="../sc-timeago/sc-timeago.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <script src="../time-elements/time-elements.js"></script>
 
@@ -71,7 +70,7 @@ Example:
 
     <masonry-layout id="grids" column-width="200">
       <template is="dom-repeat" items="[[data]]">
-        <a href="https://requirements-bazaar.org/#/project/154/component/203/requirement/[[item.id]]" target="_blank">
+        <a href="https://requirements-bazaar.org/#/project/154/component/[[component]]/requirement/[[item.id]]" target="_blank">
         <div class="grid-item">
           <paper-card heading="{{item.title}}">
             <time is="relative-time" class="time"
@@ -105,6 +104,11 @@ Example:
           value: 'https://requirements-bazaar.org/bazaar/components/203/requirements',
           notify: true
         },
+        component: {
+          type: Number,
+          value: 203,
+          notify: true
+        },
         page: {
           type: Number,
           value: 0,
@@ -119,10 +123,6 @@ Example:
         options: {
           computed: 'computeOptions(page, perPage)'
         }
-      },
-
-      ready: function(){
-        this.$.ajax.generateRequest();
       },
 
       computeOptions: function (page, perPage){
