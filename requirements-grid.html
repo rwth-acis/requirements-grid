@@ -35,128 +35,145 @@ Example:
 -->
 
 <dom-module id="requirements-grid">
-  <template>
-    <style>
-      :host{
-        display: block;
-      }
-      paper-card {
-        max-width: 200px;
-      }
-      paper-button{
-        margin:10px;
-      }
-      a {
-        color:inherit;
-        background-color: inherit;
-      }
-      .time {
-        display: block;
-        font-style: italic;
-        float: right;
-        padding-right: 5px;
-      }
-    </style>
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
 
-    <iron-ajax id="ajax"
-            auto
-            url="{{url}}"
-            params='{{options}}'
-            handle-as="json"
-            on-response="_hasEnoughItems"
-            last-response="{{data}}">
-    </iron-ajax>
+            paper-card {
+                max-width: 200px;
+            }
+
+            paper-button {
+                margin: 10px;
+            }
+
+            a {
+                color: inherit;
+                background-color: inherit;
+            }
+
+            .time {
+                display: block;
+                font-style: italic;
+                float: right;
+                padding-right: 5px;
+            }
+
+            .truncate {
+                width: 250px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        </style>
+
+        <iron-ajax id="ajax"
+                   auto
+                   url="[[url]]"
+                   params='{{options}}'
+                   handle-as="json"
+                   on-response="_hasEnoughItems"
+                   last-response="{{data}}">
+        </iron-ajax>
 
 
-    <masonry-layout id="grids" column-width="200">
-      <template is="dom-repeat" items="[[data]]">
-        <a href="https://requirements-bazaar.org/#/project/154/component/[[component]]/requirement/[[item.id]]" target="_blank">
-        <div class="grid-item">
-          <paper-card heading="{{item.title}}">
-            <time is="relative-time" class="time"
-                  datetime$="[[item.creation_time]]">
-              </time>
-            <div class="card-content">{{item.description}}</div>
-            <div class="card-actions">
-              <paper-button noink>
-                <iron-icon icon="star"></iron-icon>
-                {{item.upVotes}}
-              </paper-button>
-            </div>
-          </paper-card>
-        </div>
-        </a>
-      </template>
-    </masonry-layout>
+        <masonry-layout id="grids" column-width="200">
+            <template is="dom-repeat" items="[[data]]">
+                <a href="https://requirements-bazaar.org/#/project/[[projectId]]/component/[[componentId]]/requirement/[[item.id]]"
+                   target="_blank">
+                    <div class="grid-item">
+                        <paper-card heading="{{item.title}}">
+                            <time is="relative-time" class="time"
+                                  datetime$="[[item.creation_time]]">
+                            </time>
+                            <div class="card-content" class=".truncate">{{item.description}}</div>
+                            <div class="card-actions">
+                                <paper-button noink>
+                                    <iron-icon icon="star"></iron-icon>
+                                    {{item.upVotes}}
+                                </paper-button>
+                            </div>
+                        </paper-card>
+                    </div>
+                </a>
+            </template>
+        </masonry-layout>
 
-    <paper-button id="previous" raised on-tap="previousPage">Previous Page</paper-button>
-    <paper-button id="next" raised on-tap="nextPage">Next Page</paper-button>
+        <paper-button id="previous" raised on-tap="previousPage">Previous Page</paper-button>
+        <paper-button id="next" raised on-tap="nextPage">Next Page</paper-button>
 
-  </template>
+    </template>
 
-  <script>
-    Polymer({
-      is: 'requirements-grid',
+    <script>
+        Polymer({
+            is: 'requirements-grid',
 
-      properties: {
-        url: {
-          type: String,
-          value: 'https://requirements-bazaar.org/bazaar/components/203/requirements',
-          notify: true
-        },
-        component: {
-          type: Number,
-          value: 203,
-          notify: true
-        },
-        page: {
-          type: Number,
-          value: 0,
-          notify: true,
-          observer: '_notFirstPage'
-        },
-        perPage: {
-          type: Number,
-          value:10,
-          notify: true
-        },
-        options: {
-          computed: 'computeOptions(page, perPage)'
-        }
-      },
+            properties: {
+                url: {
+                    type: String,
+                    value: 'https://requirements-bazaar.org/bazaar/components/',
+                    notify: true
+                },
+                componentId: {
+                    type: Number,
+                    value: 203,
+                    notify: true
+                },
+                projectId: {
+                    type: Number,
+                    value: 155,
+                    notify: true
+                },
+                page: {
+                    type: Number,
+                    value: 0,
+                    notify: true,
+                    observer: '_notFirstPage'
+                },
+                perPage: {
+                    type: Number,
+                    value: 10,
+                    notify: true
+                },
+                options: {
+                    computed: 'computeOptions(page, perPage)'
+                }
+            },
 
-      computeOptions: function (page, perPage){
-        return {page: page, per_page: perPage}
-      },
+            computeOptions: function (page, perPage) {
+                return {page: page, per_page: perPage}
+            },
 
-      nextPage: function(){
-        this.page = this.page + 1;
-        this.$.ajax.generateRequest();
-      },
+            nextPage: function () {
+                this.page = this.page + 1;
+                this.$.ajax.generateRequest();
+            },
 
-      previousPage: function(){
-        this.page = this.page - 1;
-        this.$.ajax.generateRequest();
-      },
+            previousPage: function () {
+                this.page = this.page - 1;
+                this.$.ajax.generateRequest();
+            },
 
-      _hasEnoughItems: function(){
-        if (this.data != null){
-          if (this.data.length != this.perPage){
-            this.$.next.disabled = true;
+            _hasEnoughItems: function () {
+                if (this.data != null) {
+                    if (this.data.length != this.perPage) {
+                        this.$.next.disabled = true;
 
-          }
-          else
-            this.$.next.disabled = false;
-        }
-      },
+                    }
+                    else
+                        this.$.next.disabled = false;
+                }
+            },
 
-      _notFirstPage: function(){
-        if (this.page == 0){
-          this.$.previous.disabled = true;
-        } else
-          this.$.previous.disabled = false;
-      }
+            _notFirstPage: function () {
+                if (this.page == 0) {
+                    this.$.previous.disabled = true;
+                } else
+                    this.$.previous.disabled = false;
+            }
 
-    });
-  </script>
+        });
+    </script>
 </dom-module>
