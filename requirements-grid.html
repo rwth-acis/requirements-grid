@@ -28,8 +28,8 @@ Example:
 Example:
 
     <requirements-grid
-            url="https://requirements-bazaar.org/bazaar/components/204/requirements"
-            page="0" per-page="10" componentId="204" projectId="155" >
+            base-url="https://requirements-bazaar.org/bazaar/"
+            page="0" per-page="10" component-id="204" project-id="155">
     </requirements-grid>
 @demo demo/index.html
 -->
@@ -42,7 +42,7 @@ Example:
             }
 
             paper-card {
-                max-width: 200px;
+                max-width: 300px;
             }
 
             paper-button {
@@ -84,7 +84,7 @@ Example:
 
         <iron-ajax id="ajax"
                    auto
-                   url="[[url]]"
+                   url="[[_resourceURL]]"
                    params='{{options}}'
                    handle-as="json"
                    on-response="_hasEnoughItems"
@@ -124,15 +124,17 @@ Example:
             is: 'requirements-grid',
 
             properties: {
-                url: {
+                _resourceURL: {
                     type: String,
-                    value: 'https://requirements-bazaar.org/bazaar/components/',
-                    notify: true
+                    computed: '_computeResourceURL(baseUrl, componentId)'
+                },
+                baseUrl: {
+                    type: String,
+                    value: 'https://requirements-bazaar.org/bazaar/',
                 },
                 componentId: {
                     type: Number,
-                    value: 204,
-                    notify: true
+                    value: 204
                 },
                 projectId: {
                     type: Number,
@@ -147,16 +149,19 @@ Example:
                 },
                 perPage: {
                     type: Number,
-                    value: 10,
-                    notify: true
+                    value: 10
                 },
                 options: {
-                    computed: 'computeOptions(page, perPage)'
+                    computed: '_computeOptions(page, perPage)'
                 }
             },
 
-            computeOptions: function (page, perPage) {
+            _computeOptions: function (page, perPage) {
                 return {page: page, per_page: perPage}
+            },
+
+            _computeResourceURL: function (baseUrl, componentId) {
+                return baseUrl + 'components/' + componentId + '/requirements/';
             },
 
             nextPage: function () {

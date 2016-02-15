@@ -1,8 +1,9 @@
 {
   "name": "requirements-grid",
-  "version": "1.0.7",
+  "version": "1.1.0",
   "authors": [
-    "Albi <albi.sema@rwth-aachen.de>"
+    "Albi <albi.sema@rwth-aachen.de>",
+    "István Koren <https://istvank.eu"
   ],
   "description": "An element providing a solution to no problem in particular.",
   "keywords": [
@@ -10,29 +11,23 @@
     "polymer",
     "seed"
   ],
-  "main": "ideas-grid.html",
-  "license": "http://polymer.github.io/LICENSE.txt",
-  "homepage": "https://github.com/<USERNAME>/seed-element/",
+  "main": "requirements-grid.html",
+  "license": "https://github.com/rwth-acis/requirements-grid/blob/master/LICENSE",
+  "homepage": "https://github.com/rwth-acis/requirements-grid/",
   "ignore": [
     "/.*",
     "/test/"
   ],
   "dependencies": {
     "polymer": "Polymer/polymer#^1.2.0",
-    "paper-card": "PolymerElements/paper-card#~1.0.9",
-    "masonry-layout": "~1.0.4",
-    "paper-button": "PolymerElements/paper-button#~1.0.11",
+    "paper-card": "PolymerElements/paper-card#^1.0.9",
+    "masonry-layout": "^1.0.4",
+    "paper-button": "PolymerElements/paper-button#^1.0.11",
     "iron-icons": "PolymerElements/iron-icons#^1.1.2",
     "time-elements": "^0.4.0"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
     "web-component-tester": "^4.0.0"
-  },
-  "resolutions": {
-    "paper-ripple": "^1.0.0",
-    "font-roboto": "^1.0.1",
-    "paper-button": "^1.0.0",
-    "polymer": "^1.2.3"
   }
 }
