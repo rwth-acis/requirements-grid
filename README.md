@@ -1,2 +1,3 @@
 # requirements-grid
-A Web Component for showing ideas posted in Requirements Bazaar in a fancy way. :)
+
+A Web Component for showing requirements posted in Requirements Bazaar in a responsive grid.
