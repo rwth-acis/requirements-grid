@@ -13,8 +13,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../paper-card/paper-card.html">
 <link rel="import" href="../masonry-layout/masonry-layout.html">
 <link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-menu/paper-menu.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../iron-icons/editor-icons.html">
+<link rel="import" href="reqbaz-icons.html">
 <script src="../time-elements/time-elements.js"></script>
 
 <!--
@@ -106,6 +112,28 @@ Example:
                last-response="{{data}}">
     </iron-ajax>
 
+    <div class="user-options">
+      <template is="dom-if" if="[[!hideSortOption]]">
+        <div class="sorting">
+          <paper-dropdown-menu label="Sorting">
+            <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_sorting}}">
+              <paper-item value="name">A-Z</paper-item>
+              <paper-item value="date">Date</paper-item>
+              <paper-item value="follower">Followers</paper-item>
+              <paper-item value="vote">Votes</paper-item>
+              <paper-item value="comment">Comments</paper-item>
+            </paper-listbox>
+          </paper-dropdown-menu>
+          <paper-menu-button>
+            <paper-icon-button id="sortDirectionIcon" icon="reqbaz:sort-descending" class="dropdown-trigger"></paper-icon-button>
+            <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_sortDirection}}">
+              <paper-item value="+">Ascending</paper-item>
+              <paper-item value="-">Descending</paper-item>
+            </paper-menu>
+          </paper-menu-button>
+        </div>
+      </template>
+    </div>
 
     <masonry-layout id="grids" column-width="250">
       <template is="dom-repeat" items="[[data]]">
@@ -173,13 +201,36 @@ Example:
           type: Number,
           value: 10
         },
+        _sorting: {
+          type: String,
+          value: 'date',
+          notify: true,
+          //observer: '_changeSorting' TODO: observer to set sortDirection = null is called after options are computed
+        },
+        _sortDirection: {
+          type: String,
+          value: '-',
+          observer: '_requirementsSortDirectionChanged'
+        },
+        hideSortOption: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
         options: {
-          computed: '_computeOptions(page, perPage)'
+          computed: '_computeOptions(page, perPage, sorting, sortDirection)'
         }
       },
 
-      _computeOptions: function (page, perPage) {
-        return {page: page, per_page: perPage}
+      _computeOptions: function (page, perPage, sorting, sortDirection) {
+        if (sortDirection === null) {
+          if (['date', 'vote', 'comment', 'follower'].indexOf(sorting) >= 0) {
+            sortDirection = '-';
+          } else {
+            sortDirection = '+';
+          }
+        }
+        return {page: page, per_page: perPage, sort: sortDirection + sorting}
       },
 
       _computeResourceURL: function (baseUrl, categoryId) {
@@ -211,6 +262,14 @@ Example:
           this.$.previous.disabled = true;
         } else {
           this.$.previous.disabled = false;
+        }
+      },
+
+      _requirementsSortDirectionChanged: function(newValue) {
+        if (newValue === '+') {
+          this.$.sortDirectionIcon.icon = 'reqbaz:sort-ascending';
+        } else {
+          this.$.sortDirectionIcon.icon = 'reqbaz:sort-descending';
         }
       }
 
