@@ -112,8 +112,7 @@ Example:
                last-response="{{data}}">
     </iron-ajax>
 
-    <div class="user-options">
-      <template is="dom-if" if="[[!hideSortOption]]">
+    <div class="display-options" hidden="[[hideDisplayOptions]]">
         <div class="sorting">
           <paper-dropdown-menu label="Sorting">
             <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_sorting}}">
@@ -132,7 +131,6 @@ Example:
             </paper-menu>
           </paper-menu-button>
         </div>
-      </template>
     </div>
 
     <masonry-layout id="grids" column-width="250">
@@ -212,7 +210,7 @@ Example:
           value: '-',
           observer: '_requirementsSortDirectionChanged'
         },
-        hideSortOption: {
+        hideDisplayOptions: {
           type: Boolean,
           value: false,
           reflectToAttribute: true
