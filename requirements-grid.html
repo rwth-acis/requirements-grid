@@ -191,7 +191,7 @@ Example:
         page: {
           type: Number,
           value: 0,
-          observer: '_notFirstPage'
+          observer: '_pageChanged'
         },
         perPage: {
           type: Number,
@@ -239,16 +239,29 @@ Example:
         return baseUrl + 'categories/' + categoryId + '/requirements';
       },
 
+      /**
+       * Queries the next page's requirements from the service.
+       *
+       */
       nextPage: function () {
         this.page = this.page + 1;
         this.$.ajax.generateRequest();
       },
 
+      /**
+       * Queries the previous page's requirements from the service.
+       */
       previousPage: function () {
         this.page = this.page - 1;
         this.$.ajax.generateRequest();
       },
 
+      /**
+       * Calculates whether there are enough requirements to show the "next page" button. Usually called after the
+       * request to the service has succeeded.
+       *
+       * @private
+       */
       _hasEnoughItems: function () {
         if (this.data != null) {
           if (this.data.length != this.perPage) {
@@ -259,7 +272,12 @@ Example:
         }
       },
 
-      _notFirstPage: function () {
+      /**
+       * Observer for the page property. Toggles the "previous page" button.
+       *
+       * @private
+       */
+      _pageChanged: function () {
         if (this.page == 0) {
           this.$.previous.disabled = true;
         } else {
@@ -267,6 +285,12 @@ Example:
         }
       },
 
+      /**
+       * Observer for the _sortDirection property. Toggles the sort direction button's icon.
+       *
+       * @param newValue
+       * @private
+       */
       _requirementsSortDirectionChanged: function(newValue) {
         if (newValue === '+') {
           this.$.sortDirectionIcon.icon = 'reqbaz:sort-ascending';
