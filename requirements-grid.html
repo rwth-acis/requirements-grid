@@ -186,13 +186,11 @@ Example:
         },
         projectId: {
           type: Number,
-          value: 155,
-          notify: true
+          value: 155
         },
         page: {
           type: Number,
           value: 0,
-          notify: true,
           observer: '_notFirstPage'
         },
         perPage: {
@@ -202,8 +200,6 @@ Example:
         _sorting: {
           type: String,
           value: 'date',
-          notify: true,
-          //observer: '_changeSorting' TODO: observer to set sortDirection = null is called after options are computed
         },
         _sortDirection: {
           type: String,
@@ -216,7 +212,7 @@ Example:
           reflectToAttribute: true
         },
         options: {
-          computed: '_computeOptions(page, perPage, sorting, sortDirection)'
+          computed: '_computeOptions(page, perPage, _sorting, _sortDirection)'
         }
       },
 
