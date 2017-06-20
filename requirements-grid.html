@@ -13,8 +13,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../paper-card/paper-card.html">
 <link rel="import" href="../masonry-layout/masonry-layout.html">
 <link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-item/paper-item.html">
+<link rel="import" href="../paper-menu/paper-menu.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../iron-icons/editor-icons.html">
+<link rel="import" href="reqbaz-icons.html">
 <script src="../time-elements/time-elements.js"></script>
 
 <!--
@@ -97,15 +103,35 @@ Example:
       }
     </style>
 
-    <iron-ajax id="ajax"
+    <iron-ajax id="requirementsRequest"
                auto
                url="[[_resourceURL]]"
-               params='{{options}}'
+               params='{{_requirementsRequestParams}}'
                handle-as="json"
-               on-response="_hasEnoughItems"
+               on-response="_showNextPage"
                last-response="{{data}}">
     </iron-ajax>
 
+    <div class="display-options" hidden="[[hideDisplayOptions]]">
+        <div class="sorting">
+          <paper-dropdown-menu label="Sorting">
+            <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_sorting}}">
+              <paper-item value="name">A-Z</paper-item>
+              <paper-item value="date">Date</paper-item>
+              <paper-item value="follower">Followers</paper-item>
+              <paper-item value="vote">Votes</paper-item>
+              <paper-item value="comment">Comments</paper-item>
+            </paper-listbox>
+          </paper-dropdown-menu>
+          <paper-menu-button>
+            <paper-icon-button id="sortDirectionIcon" icon="reqbaz:sort-descending" class="dropdown-trigger"></paper-icon-button>
+            <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_sortDirection}}">
+              <paper-item value="+">Ascending</paper-item>
+              <paper-item value="-">Descending</paper-item>
+            </paper-menu>
+          </paper-menu-button>
+        </div>
+    </div>
 
     <masonry-layout id="grids" column-width="250">
       <template is="dom-repeat" items="[[data]]">
@@ -156,61 +182,140 @@ Example:
         },
         categoryId: {
           type: Number,
-          value: 204
+          value: 1
         },
         projectId: {
           type: Number,
-          value: 155,
-          notify: true
+          value: 1
         },
         page: {
           type: Number,
           value: 0,
-          notify: true,
-          observer: '_notFirstPage'
+          observer: '_pageChanged'
+        },
+        /**
+         * Stores the last request's page param.
+         */
+        _lastRequestPage: {
+          type: Number
         },
         perPage: {
           type: Number,
           value: 10
         },
-        options: {
-          computed: '_computeOptions(page, perPage)'
+        _sorting: {
+          type: String,
+          value: 'date',
+        },
+        /**
+         * Stores the last request's sorting param.
+         */
+        _lastRequestSorting: {
+          type: String
+        },
+        _sortDirection: {
+          type: String,
+          value: '-',
+          observer: '_sortDirectionChanged'
+        },
+        hideDisplayOptions: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
+        _requirementsRequestParams: {
+          computed: '_computeRequirementsRequestParams(page, perPage, _sorting, _sortDirection)'
         }
       },
 
-      _computeOptions: function (page, perPage) {
-        return {page: page, per_page: perPage}
+      _computeRequirementsRequestParams: function (page, perPage, sorting, sortDirection) {
+        // if we have a new sorting parameter, reset the sort direction
+        if (this._lastRequestSorting !== sorting) {
+            if (['date', 'vote', 'comment', 'follower'].indexOf(sorting) >= 0) {
+                this._sortDirection = '-';
+                sortDirection = '-';
+            } else {
+                this._sortDirection = '+';
+                sortDirection = '+';
+            }
+        }
+        this._lastRequestSorting = sorting;
+
+        // reset page if one of the other parameters changed
+        if (this._lastRequestPage === page) {
+          this.page = 0;
+        }
+        this._lastRequestPage = this.page;
+
+        return {page: this.page, per_page: perPage, sort: sortDirection + sorting}
       },
 
       _computeResourceURL: function (baseUrl, categoryId) {
         return baseUrl + 'categories/' + categoryId + '/requirements';
       },
 
+      /**
+       * Queries the next page's requirements from the service.
+       *
+       */
       nextPage: function () {
         this.page = this.page + 1;
-        this.$.ajax.generateRequest();
       },
 
+      /**
+       * Queries the previous page's requirements from the service.
+       */
       previousPage: function () {
         this.page = this.page - 1;
-        this.$.ajax.generateRequest();
       },
 
-      _hasEnoughItems: function () {
-        if (this.data != null) {
-          if (this.data.length != this.perPage) {
-            this.$.next.disabled = true;
-          } else {
-            this.$.next.disabled = false;
-          }
+      /**
+       * Calculates whether there are enough requirements to show the "next page" button. Usually called after the
+       * request to the service has succeeded.
+       *
+       * @private
+       */
+      _showNextPage: function (event, response) {
+        var CORS = response.xhr.getAllResponseHeaders().indexOf("x-next-page") !== -1;
+        var showNextPage;
+        if (CORS) {
+          // Try to fetch custom header. Server needs to allow CORS for this feature.
+          showNextPage = response.xhr.getResponseHeader("x-next-page");
+        } else {
+          // If CORS is not enabled use old method to calculate
+          showNextPage = this.data.length != this.perPage
+        }
+        if (showNextPage) {
+          this.$.next.disabled = true;
+        } else {
+          this.$.next.disabled = false;
         }
       },
 
-      _notFirstPage: function () {
+      /**
+       * Observer for the page property. Toggles the "previous page" button.
+       *
+       * @private
+       */
+      _pageChanged: function () {
         if (this.page == 0) {
           this.$.previous.disabled = true;
         } else {
           this.$.previous.disabled = false;
+        }
+      },
+
+      /**
+       * Observer for the _sortDirection property. Toggles the sort direction button's icon.
+       *
+       * @param newValue
+       * @private
+       */
+      _sortDirectionChanged: function(newValue) {
+        if (newValue === '+') {
+          this.$.sortDirectionIcon.icon = 'reqbaz:sort-ascending';
+        } else {
+          this.$.sortDirectionIcon.icon = 'reqbaz:sort-descending';
         }
       }
 
