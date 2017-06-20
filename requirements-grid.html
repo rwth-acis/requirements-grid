@@ -103,10 +103,10 @@ Example:
       }
     </style>
 
-    <iron-ajax id="ajax"
+    <iron-ajax id="requirementsRequest"
                auto
                url="[[_resourceURL]]"
-               params='{{options}}'
+               params='{{_requirementsRequestParams}}'
                handle-as="json"
                on-response="_showNextPage"
                last-response="{{data}}">
@@ -193,19 +193,25 @@ Example:
           value: 0,
           observer: '_pageChanged'
         },
-        _lastPage: {
+        /**
+         * Stores the last request's page param.
+         */
+        _lastRequestPage: {
           type: Number
         },
         perPage: {
           type: Number,
           value: 10
         },
-        _lastRequestSorting: {
-          type: String
-        },
         _sorting: {
           type: String,
           value: 'date',
+        },
+        /**
+         * Stores the last request's sorting param.
+         */
+        _lastRequestSorting: {
+          type: String
         },
         _sortDirection: {
           type: String,
@@ -217,12 +223,12 @@ Example:
           value: false,
           reflectToAttribute: true
         },
-        options: {
-          computed: '_computeOptions(page, perPage, _sorting, _sortDirection)'
+        _requirementsRequestParams: {
+          computed: '_computeRequirementsRequestParams(page, perPage, _sorting, _sortDirection)'
         }
       },
 
-      _computeOptions: function (page, perPage, sorting, sortDirection) {
+      _computeRequirementsRequestParams: function (page, perPage, sorting, sortDirection) {
         // if we have a new sorting parameter, reset the sort direction
         if (this._lastRequestSorting !== sorting) {
             if (['date', 'vote', 'comment', 'follower'].indexOf(sorting) >= 0) {
@@ -234,14 +240,14 @@ Example:
             }
         }
         this._lastRequestSorting = sorting;
-        // reset page if one of the other parameters changed
-        if (this._lastPage === page) {
-          this.page = page;
-          page = 0;
-        }
-        this._lastPage = page;
 
-        return {page: page, per_page: perPage, sort: sortDirection + sorting}
+        // reset page if one of the other parameters changed
+        if (this._lastRequestPage === page) {
+          this.page = 0;
+        }
+        this._lastRequestPage = this.page;
+
+        return {page: this.page, per_page: perPage, sort: sortDirection + sorting}
       },
 
       _computeResourceURL: function (baseUrl, categoryId) {
