@@ -210,7 +210,7 @@ Example:
         _sortDirection: {
           type: String,
           value: '-',
-          observer: '_requirementsSortDirectionChanged'
+          observer: '_sortDirectionChanged'
         },
         hideDisplayOptions: {
           type: Boolean,
@@ -305,7 +305,7 @@ Example:
        * @param newValue
        * @private
        */
-      _requirementsSortDirectionChanged: function(newValue) {
+      _sortDirectionChanged: function(newValue) {
         if (newValue === '+') {
           this.$.sortDirectionIcon.icon = 'reqbaz:sort-ascending';
         } else {
