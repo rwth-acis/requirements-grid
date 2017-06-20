@@ -108,7 +108,7 @@ Example:
                url="[[_resourceURL]]"
                params='{{options}}'
                handle-as="json"
-               on-response="_hasEnoughItems"
+               on-response="_showNextPage"
                last-response="{{data}}">
     </iron-ajax>
 
@@ -182,16 +182,19 @@ Example:
         },
         categoryId: {
           type: Number,
-          value: 204
+          value: 1
         },
         projectId: {
           type: Number,
-          value: 155
+          value: 1
         },
         page: {
           type: Number,
           value: 0,
           observer: '_pageChanged'
+        },
+        _lastPage: {
+          type: Number
         },
         perPage: {
           type: Number,
@@ -231,6 +234,12 @@ Example:
             }
         }
         this._lastRequestSorting = sorting;
+        // reset page if one of the other parameters changed
+        if (this._lastPage === page) {
+          this.page = page;
+          page = 0;
+        }
+        this._lastPage = page;
 
         return {page: page, per_page: perPage, sort: sortDirection + sorting}
       },
@@ -245,7 +254,6 @@ Example:
        */
       nextPage: function () {
         this.page = this.page + 1;
-        this.$.ajax.generateRequest();
       },
 
       /**
@@ -253,7 +261,6 @@ Example:
        */
       previousPage: function () {
         this.page = this.page - 1;
-        this.$.ajax.generateRequest();
       },
 
       /**
@@ -262,13 +269,20 @@ Example:
        *
        * @private
        */
-      _hasEnoughItems: function () {
-        if (this.data != null) {
-          if (this.data.length != this.perPage) {
-            this.$.next.disabled = true;
-          } else {
-            this.$.next.disabled = false;
-          }
+      _showNextPage: function (event, response) {
+        var CORS = response.xhr.getAllResponseHeaders().indexOf("x-next-page") !== -1;
+        var showNextPage;
+        if (CORS) {
+          // Try to fetch custom header. Server needs to allow CORS for this feature.
+          showNextPage = response.xhr.getResponseHeader("x-next-page");
+        } else {
+          // If CORS is not enabled use old method to calculate
+          showNextPage = this.data.length != this.perPage
+        }
+        if (showNextPage) {
+          this.$.next.disabled = true;
+        } else {
+          this.$.next.disabled = false;
         }
       },
 
