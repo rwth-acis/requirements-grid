@@ -107,6 +107,7 @@ Example:
 
     <iron-ajax id="requirementsRequest"
                auto
+               debounce-duration="300",
                url="[[_resourceURL]]"
                params='{{_requirementsRequestParams}}'
                handle-as="json"
@@ -276,7 +277,6 @@ Example:
         this._lastRequestPage = this.page;
 
         return {page: this.page, per_page: perPage, sort: sortDirection + sorting, state: requirementsState, search: search}
-        return {page: this.page, per_page: perPage, sort: sortDirection + sorting, state: requirementsState}
       },
 
       _computeResourceURL: function (baseUrl, categoryId) {
