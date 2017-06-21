@@ -20,9 +20,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../paper-menu/paper-menu.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../iron-icons/editor-icons.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="reqbaz-icons.html">
 <script src="../time-elements/time-elements.js"></script>
-
 <!--
 An element that gets url with attributes and fetches data in a masonry layout with pagination
 
@@ -43,6 +44,7 @@ Example:
 
 <dom-module id="requirements-grid">
   <template>
+    <style include="iron-flex iron-flex-alignment"/>
     <style>
       :host {
         display: block;
@@ -112,25 +114,35 @@ Example:
                last-response="{{data}}">
     </iron-ajax>
 
-    <div class="display-options" hidden="[[hideDisplayOptions]]">
-        <div class="sorting">
-          <paper-dropdown-menu label="Sorting">
-            <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_sorting}}">
-              <paper-item value="name">A-Z</paper-item>
-              <paper-item value="date">Date</paper-item>
-              <paper-item value="follower">Followers</paper-item>
-              <paper-item value="vote">Votes</paper-item>
-              <paper-item value="comment">Comments</paper-item>
-            </paper-listbox>
-          </paper-dropdown-menu>
-          <paper-menu-button>
-            <paper-icon-button id="sortDirectionIcon" icon="reqbaz:sort-descending" class="dropdown-trigger"></paper-icon-button>
-            <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_sortDirection}}">
-              <paper-item value="+">Ascending</paper-item>
-              <paper-item value="-">Descending</paper-item>
-            </paper-menu>
-          </paper-menu-button>
-        </div>
+    <div id="display-options" class="layout horizontal wrap" hidden="[[hideDisplayOptions]]">
+      <div id="sorting" class="horizontal layout flex">
+        <paper-dropdown-menu label="Sorting">
+          <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_sorting}}">
+            <paper-item value="name">A-Z</paper-item>
+            <paper-item value="date">Date</paper-item>
+            <paper-item value="follower">Followers</paper-item>
+            <paper-item value="vote">Votes</paper-item>
+            <paper-item value="comment">Comments</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+        <paper-menu-button>
+          <paper-icon-button id="sortDirectionIcon" icon="reqbaz:sort-descending"
+                             class="dropdown-trigger"></paper-icon-button>
+          <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_sortDirection}}">
+            <paper-item value="+">Ascending</paper-item>
+            <paper-item value="-">Descending</paper-item>
+          </paper-menu>
+        </paper-menu-button>
+      </div>
+      <div id="realized" class="horizontal layout end">
+        <paper-menu-button horizontal-align="right">
+          <paper-icon-button id="stateMenuIcon" icon="assignment" class="dropdown-trigger"></paper-icon-button>
+          <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_requirementsState}}">
+            <paper-item value="open">Open</paper-item>
+            <paper-item value="realized">Realized</paper-item>
+          </paper-menu>
+        </paper-menu-button>
+      </div>
     </div>
 
     <masonry-layout id="grids" column-width="250">
@@ -178,7 +190,7 @@ Example:
         },
         baseUrl: {
           type: String,
-          value: 'https://requirements-bazaar.org/bazaar/',
+          value: 'https://requirements-bazaar.org/bazaar/'
         },
         categoryId: {
           type: Number,
@@ -218,17 +230,22 @@ Example:
           value: '-',
           observer: '_sortDirectionChanged'
         },
+        _requirementsState: {
+          type: String,
+          value: 'open',
+          observer: '_requirementsStateChanged'
+        },
         hideDisplayOptions: {
           type: Boolean,
           value: false,
           reflectToAttribute: true
         },
         _requirementsRequestParams: {
-          computed: '_computeRequirementsRequestParams(page, perPage, _sorting, _sortDirection)'
+          computed: '_computeRequirementsRequestParams(page, perPage, _sorting, _sortDirection, _requirementsState)'
         }
       },
 
-      _computeRequirementsRequestParams: function (page, perPage, sorting, sortDirection) {
+      _computeRequirementsRequestParams: function (page, perPage, sorting, sortDirection, requirementsState) {
         // if we have a new sorting parameter, reset the sort direction
         if (this._lastRequestSorting !== sorting) {
             if (['date', 'vote', 'comment', 'follower'].indexOf(sorting) >= 0) {
@@ -247,7 +264,7 @@ Example:
         }
         this._lastRequestPage = this.page;
 
-        return {page: this.page, per_page: perPage, sort: sortDirection + sorting}
+        return {page: this.page, per_page: perPage, sort: sortDirection + sorting, state: requirementsState}
       },
 
       _computeResourceURL: function (baseUrl, categoryId) {
@@ -316,6 +333,20 @@ Example:
           this.$.sortDirectionIcon.icon = 'reqbaz:sort-ascending';
         } else {
           this.$.sortDirectionIcon.icon = 'reqbaz:sort-descending';
+        }
+      },
+
+      /**
+       * Observer for the _requirementsState property. Toggles the requirements state button's icon.
+       *
+       * @param newValue
+       * @private
+       */
+      _requirementsStateChanged: function(newValue) {
+        if (newValue === 'open') {
+          this.$.stateMenuIcon.icon = 'assignment';
+        } else {
+          this.$.stateMenuIcon.icon = 'assignment-turned-in';
         }
       }
 
