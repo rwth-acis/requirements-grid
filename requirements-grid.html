@@ -197,7 +197,7 @@ Example:
         },
         baseUrl: {
           type: String,
-          value: 'https://requirements-bazaar.org/bazaar/',
+          value: 'https://requirements-bazaar.org/bazaar/'
         },
         categoryId: {
           type: Number,
@@ -276,6 +276,7 @@ Example:
         this._lastRequestPage = this.page;
 
         return {page: this.page, per_page: perPage, sort: sortDirection + sorting, state: requirementsState, search: search}
+        return {page: this.page, per_page: perPage, sort: sortDirection + sorting, state: requirementsState}
       },
 
       _computeResourceURL: function (baseUrl, categoryId) {
