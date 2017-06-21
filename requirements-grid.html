@@ -44,7 +44,7 @@ Example:
 
 <dom-module id="requirements-grid">
   <template>
-    <style include="iron-flex iron-flex-alignment"/>
+    <style include="iron-flex iron-flex-alignment"></style>
     <style>
       :host {
         display: block;
@@ -103,6 +103,10 @@ Example:
       .card-actions > paper-button > iron-icon {
         margin-right: 0.3em;
       }
+
+      #search {
+        min-width: 200px;
+      }
     </style>
 
     <iron-ajax id="requirementsRequest"
@@ -115,7 +119,7 @@ Example:
     </iron-ajax>
 
     <div id="display-options" class="layout horizontal wrap" hidden="[[hideDisplayOptions]]">
-      <div id="sorting" class="horizontal layout flex">
+      <div id="sorting" class="horizontal layout end">
         <paper-dropdown-menu label="Sorting">
           <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_sorting}}">
             <paper-item value="name">A-Z</paper-item>
@@ -133,6 +137,13 @@ Example:
             <paper-item value="-">Descending</paper-item>
           </paper-menu>
         </paper-menu-button>
+      </div>
+      <div id="search" class="flex">
+        <paper-input class="large" label="Search" value="{{_search}}">
+          <iron-icon icon="search" prefix></iron-icon>
+          <paper-icon-button id="searchClearButton" suffix on-tap="_clearSearchInput"
+                             icon="clear" alt="clear" title="clear" tabindex="0"></paper-icon-button>
+        </paper-input>
       </div>
       <div id="realized" class="horizontal layout end">
         <paper-menu-button horizontal-align="right">
@@ -230,6 +241,10 @@ Example:
           value: '-',
           observer: '_sortDirectionChanged'
         },
+        _search: {
+          type: String,
+          observer: '_searchChanged'
+        },
         _requirementsState: {
           type: String,
           value: 'open',
@@ -241,11 +256,11 @@ Example:
           reflectToAttribute: true
         },
         _requirementsRequestParams: {
-          computed: '_computeRequirementsRequestParams(page, perPage, _sorting, _sortDirection, _requirementsState)'
+          computed: '_computeRequirementsRequestParams(page, perPage, _sorting, _sortDirection, _requirementsState, _search)'
         }
       },
 
-      _computeRequirementsRequestParams: function (page, perPage, sorting, sortDirection, requirementState) {
+      _computeRequirementsRequestParams: function (page, perPage, sorting, sortDirection, requirementState, search) {
         // if we have a new sorting parameter, reset the sort direction
         if (this._lastRequestSorting !== sorting) {
             if (['date', 'vote', 'comment', 'follower'].indexOf(sorting) >= 0) {
@@ -264,7 +279,7 @@ Example:
         }
         this._lastRequestPage = this.page;
 
-        return {page: this.page, per_page: perPage, sort: sortDirection + sorting, state: requirementState}
+        return {page: this.page, per_page: perPage, sort: sortDirection + sorting, state: requirementState, search: search}
       },
 
       _computeResourceURL: function (baseUrl, categoryId) {
@@ -319,6 +334,23 @@ Example:
           this.$.previous.disabled = true;
         } else {
           this.$.previous.disabled = false;
+        }
+      },
+
+      /**
+       * Clear the search input field.
+       *
+       * @private
+       */
+      _clearSearchInput: function() {
+        this._search = '';
+      },
+
+      _searchChanged: function(newValue) {
+        if (newValue.length === 0) {
+          this.$.searchClearButton.style.visibility = 'hidden';
+        } else {
+          this.$.searchClearButton.style.visibility = 'visible';
         }
       },
 
