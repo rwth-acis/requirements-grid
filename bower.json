@@ -1,9 +1,10 @@
 {
   "name": "requirements-grid",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "authors": [
-    "Albi <albi.sema@rwth-aachen.de>",
-    "István Koren <https://istvank.eu>"
+    "Martin Hug <hug@dbis.rwth-aachen.de>",
+    "István Koren <https://istvank.eu>",
+    "Albi <albi.sema@rwth-aachen.de>"
   ],
   "description": "A Web Component for showing requirements posted in Requirements Bazaar in a responsive grid.",
   "keywords": [
