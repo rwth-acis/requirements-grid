@@ -92,16 +92,18 @@ Example:
       }
 
       .card-actions {
-        text-align:center;
+        text-align: center;
+        padding: 0px 0px;
       }
 
       .card-actions > paper-button {
         margin: 0 auto;
-        min-width: 4em;
+        min-width: 2em;
+        padding: 0.8em 0.25em;
       }
 
       .card-actions > paper-button > iron-icon {
-        margin-right: 0.3em;
+        margin-right: 0.2em;
       }
     </style>
 
@@ -164,12 +166,16 @@ Example:
               <div class="card-content truncate">{{item.description}}</div>
               <div class="card-actions">
                 <paper-button noink>
-                  <iron-icon icon="question-answer"></iron-icon>
-                  {{item.numberOfComments}}
-                </paper-button>
-                <paper-button noink>
                   <iron-icon icon="star"></iron-icon>
                   {{item.upVotes}}
+                </paper-button>
+                <paper-button noink>
+                  <iron-icon icon="book"></iron-icon>
+                  {{item.numberOfFollowers}}
+                </paper-button>
+                <paper-button noink>
+                  <iron-icon icon="question-answer"></iron-icon>
+                  {{item.numberOfComments}}
                 </paper-button>
                 <paper-button noink>
                   <iron-icon icon="editor:attach-file"></iron-icon>
