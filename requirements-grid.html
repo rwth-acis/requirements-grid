@@ -11,7 +11,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../paper-card/paper-card.html">
-<link rel="import" href="../masonry-layout/masonry-layout.html">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../paper-listbox/paper-listbox.html">
@@ -25,6 +24,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="reqbaz-icons.html">
 <script src="../time-elements/time-elements.js"></script>
+<script src="../masonry/dist/masonry.pkgd.min.js"></script>
 <!--
 An element that gets url with attributes and fetches data in a masonry layout with pagination
 
@@ -54,6 +54,10 @@ Example:
       paper-card {
         width: 250px;
         word-wrap: break-word;
+      }
+
+      .grid-item {
+        margin: 8px;
       }
 
       paper-button {
@@ -110,7 +114,7 @@ Example:
 
     <iron-ajax id="requirementsRequest"
                auto
-               debounce-duration="300",
+               debounce-duration="300"
                url="[[_resourceURL]]"
                params='{{_requirementsRequestParams}}'
                handle-as="json"
@@ -157,41 +161,41 @@ Example:
       </div>
     </div>
 
-    <masonry-layout id="grids" column-width="250">
-      <template is="dom-repeat" items="[[data]]">
-        <a href="https://requirements-bazaar.org/projects/[[projectId]]/categories/[[categoryId]]/requirements/[[item.id]]" target="_blank">
+    <div id="grid">
+      <template is="dom-repeat" items="{{data}}" as="req" on-dom-change="_handleGridDomChange">
+        <a href="https://requirements-bazaar.org/projects/[[projectId]]/categories/[[categoryId]]/requirements/[[reg.id]]" target="_blank">
           <div class="grid-item">
-            <paper-card heading="{{item.name}}">
+            <paper-card heading="{{req.name}}">
               <time is="relative-time" class="time"
-                    datetime$="[[item.creationDate]]">
+                    datetime$="[[req.creationDate]]">
               </time>
-              <div class="card-content truncate">{{item.description}}</div>
+              <div class="card-content truncate">{{req.description}}</div>
               <div class="card-actions">
                 <span>
                   <paper-button noink>
                     <iron-icon icon="star"></iron-icon>
-                    {{item.upVotes}}
+                    {{req.upVotes}}
                   </paper-button>
                   <paper-tooltip>Votes</paper-tooltip>
                 </span>
                 <span>
                   <paper-button noink>
                     <iron-icon icon="bookmark"></iron-icon>
-                    {{item.numberOfFollowers}}
+                    {{req.numberOfFollowers}}
                   </paper-button>
                   <paper-tooltip>Followers</paper-tooltip>
                 </span>
                 <span>
                   <paper-button noink>
                     <iron-icon icon="question-answer"></iron-icon>
-                    {{item.numberOfComments}}
+                    {{req.numberOfComments}}
                   </paper-button>
                   <paper-tooltip>Comments</paper-tooltip>
                 </span>
                 <span>
                   <paper-button noink>
                     <iron-icon icon="editor:attach-file"></iron-icon>
-                    {{item.numberOfAttachments}}
+                    {{req.numberOfAttachments}}
                   </paper-button>
                   <paper-tooltip>Attachments</paper-tooltip>
                 </span>
@@ -200,7 +204,7 @@ Example:
           </div>
         </a>
       </template>
-    </masonry-layout>
+    </div>
 
     <paper-button id="previous" raised on-tap="previousPage">Previous Page</paper-button>
     <paper-button id="next" raised on-tap="nextPage">Next Page</paper-button>
@@ -397,7 +401,21 @@ Example:
         } else {
           this.$.stateMenuIcon.icon = 'assignment-turned-in';
         }
+      },
+
+      /**
+       * Generates masonry grid
+       *
+       * @private
+       */
+      _handleGridDomChange: function() {
+        console.log('grid dom element change');
+        var grid = this.$$('#grid');
+        var msnry = new Masonry(grid, {
+          itemSelector: '.grid-item'
+        });
       }
+
 
     });
   </script>
