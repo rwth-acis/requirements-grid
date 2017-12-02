@@ -1,13 +1,3 @@
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../paper-card/paper-card.html">
@@ -23,8 +13,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="reqbaz-icons.html">
+
 <script src="../time-elements/time-elements.js"></script>
 <script src="../masonry/dist/masonry.pkgd.min.js"></script>
+
 <!--
 An element that gets url with attributes and fetches data in a masonry layout with pagination
 
@@ -52,13 +44,11 @@ Example:
       }
 
       paper-card {
-        height: 400px;
         width: 250px;
-        word-wrap: break-word;
+        /*word-wrap: break-word;*/
       }
 
       .grid-item {
-        height: 400px;
         width: 250px;
         margin: 8px;
       }
@@ -81,25 +71,19 @@ Example:
 
       .card-content {
         width: 90%;
-        /*white-space: nowrap;*/
-        /*text-overflow: ellipsis;*/
-        overflow: hidden;
-        position: relative;
+        overflow-y: hidden;
+        word-break: break-word;
+        word-wrap: break-word;
       }
 
-      .card-actions:before {
-        content: "";
-        position: absolute;
-        top: -2.5em;
-        left: 0;
-        width: 100%;
-        height: 2.5em;
-        background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+      paper-card {
+        --paper-card-header-text: {
+          word-break: break-word;
+          word-wrap: break-word;
+        }
       }
 
       .card-actions {
-        position: absolute;
-        bottom: 0;
         width: 100%;
         text-align: center;
         padding: 0px 0px;
@@ -166,40 +150,40 @@ Example:
     </div>
 
     <div id="grid">
-      <template is="dom-repeat" items="{{data}}" as="req" on-dom-change="_handleGridDomChange">
-        <a href="https://requirements-bazaar.org/projects/[[projectId]]/categories/[[categoryId]]/requirements/[[reg.id]]" target="_blank">
+      <template is="dom-repeat" items="{{data}}" as="requirement" on-dom-change="_handleGridDomChange">
+        <a href="[[frontendBaseUrl]]/projects/[[projectId]]/categories/[[categoryId]]/requirements/[[requirement.id]]" target="_blank">
           <div class="grid-item">
-            <paper-card heading="{{req.name}}">
+            <paper-card heading="{{requirement.name}}">
               <time is="relative-time" class="time"
-                    datetime$="[[req.creationDate]]">
+                    datetime$="[[requirement.creationDate]]">
               </time>
-              <div class="card-content truncate">{{req.description}}</div>
+              <div class="card-content">{{requirement.description}}</div>
               <div class="card-actions">
                 <span>
                   <paper-button noink>
                     <iron-icon icon="star"></iron-icon>
-                    {{req.upVotes}}
+                    {{requirement.upVotes}}
                   </paper-button>
                   <paper-tooltip>Votes</paper-tooltip>
                 </span>
                 <span>
                   <paper-button noink>
                     <iron-icon icon="bookmark"></iron-icon>
-                    {{req.numberOfFollowers}}
+                    {{requirement.numberOfFollowers}}
                   </paper-button>
                   <paper-tooltip>Followers</paper-tooltip>
                 </span>
                 <span>
                   <paper-button noink>
                     <iron-icon icon="question-answer"></iron-icon>
-                    {{req.numberOfComments}}
+                    {{requirement.numberOfComments}}
                   </paper-button>
                   <paper-tooltip>Comments</paper-tooltip>
                 </span>
                 <span>
                   <paper-button noink>
                     <iron-icon icon="editor:attach-file"></iron-icon>
-                    {{req.numberOfAttachments}}
+                    {{requirement.numberOfAttachments}}
                   </paper-button>
                   <paper-tooltip>Attachments</paper-tooltip>
                 </span>
@@ -227,6 +211,10 @@ Example:
         baseUrl: {
           type: String,
           value: 'https://requirements-bazaar.org/bazaar/'
+        },
+        frontendBaseUrl: {
+          type: String,
+          computed: '_computeFrontendBaseUrl(baseUrl)'
         },
         categoryId: {
           type: Number,
@@ -307,8 +295,12 @@ Example:
         return {page: this.page, per_page: perPage, sort: sortDirection + sorting, state: requirementsState, search: search}
       },
 
-      _computeResourceURL: function (baseUrl, categoryId) {
+      _computeResourceURL: function(baseUrl, categoryId) {
         return baseUrl + 'categories/' + categoryId + '/requirements';
+      },
+
+      _computeFrontendBaseUrl: function(baseUrl) {
+        return baseUrl.slice(0, baseUrl.length - 8);
       },
 
       /**
@@ -413,11 +405,11 @@ Example:
        * @private
        */
       _handleGridDomChange: function() {
-        console.log('grid dom element change');
-        var grid = this.$$('#grid');
-        var msnry = new Masonry(grid, {
-          itemSelector: '.grid-item'
-        });
+        requestAnimationFrame(function() {
+          var msnry = new Masonry(this.$.grid, {
+            itemSelector: '.grid-item'
+          });
+        }.bind(this));
       }
 
     });
