@@ -45,7 +45,10 @@ Example:
 
       paper-card {
         width: 250px;
-        /*word-wrap: break-word;*/
+        --paper-card-header-text: {
+          word-break: normal;
+          word-wrap: break-word;
+        }
       }
 
       .grid-item {
@@ -76,15 +79,8 @@ Example:
       .card-content {
         width: 90%;
         overflow-y: hidden;
-        word-break: break-word;
+        word-break: normal;
         word-wrap: break-word;
-      }
-
-      paper-card {
-        --paper-card-header-text: {
-          word-break: break-word;
-          word-wrap: break-word;
-        }
       }
 
       .card-actions {
@@ -269,7 +265,7 @@ Example:
          */
         _sorting: {
           type: String,
-          value: 'date',
+          value: 'date'
         },
         /**
          * Stores the last request's sorting param.
