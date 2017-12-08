@@ -155,7 +155,7 @@ Example:
 
     <div id="grid">
       <template is="dom-repeat" items="{{data}}" as="requirement" on-dom-change="_handleGridDomChange">
-        <a href="[[frontendBaseUrl]]/projects/[[projectId]]/categories/[[categoryId]]/requirements/[[requirement.id]]" target="_blank">
+        <a href="[[_frontendBaseUrl]]/projects/[[projectId]]/categories/[[categoryId]]/requirements/[[requirement.id]]" target="_blank">
           <div class="grid-item">
             <paper-card heading="{{requirement.name}}">
               <time is="relative-time" class="time"
@@ -216,7 +216,7 @@ Example:
           type: String,
           value: 'https://requirements-bazaar.org/bazaar/'
         },
-        frontendBaseUrl: {
+        _frontendBaseUrl: {
           type: String,
           computed: '_computeFrontendBaseUrl(baseUrl)'
         },
