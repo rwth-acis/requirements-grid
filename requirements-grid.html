@@ -208,26 +208,44 @@ Example:
       is: 'requirements-grid',
 
       properties: {
+        /**
+         * Computed resource URL to fetch requirements.
+         */
         _resourceURL: {
           type: String,
           computed: '_computeResourceURL(baseUrl, categoryId)'
         },
+        /**
+         * Base URL of the requirements bazaar instance to work with.
+         */
         baseUrl: {
           type: String,
           value: 'https://requirements-bazaar.org/bazaar/'
         },
+        /**
+         * Computed frontend base URL, used for requirements hyperlinks.
+         */
         _frontendBaseUrl: {
           type: String,
           computed: '_computeFrontendBaseUrl(baseUrl)'
         },
+        /**
+         * Category Id of requirements which will be displayed.
+         */
         categoryId: {
           type: Number,
           value: 1
         },
+        /**
+         * Project Id of requirements which will be displayed.
+         */
         projectId: {
           type: Number,
           value: 1
         },
+        /**
+         * Page number.
+         */
         page: {
           type: Number,
           value: 0,
@@ -239,10 +257,16 @@ Example:
         _lastRequestPage: {
           type: Number
         },
+        /**
+         * Requirements displayed per page.
+         */
         perPage: {
           type: Number,
           value: 10
         },
+        /**
+         * Sorting option.
+         */
         _sorting: {
           type: String,
           value: 'date',
@@ -253,30 +277,56 @@ Example:
         _lastRequestSorting: {
           type: String
         },
+        /**
+         * Sort direction option.
+         */
         _sortDirection: {
           type: String,
           value: '-',
           observer: '_sortDirectionChanged'
         },
+        /**
+         * Search string.
+         */
         _search: {
           type: String,
           observer: '_searchChanged'
         },
+        /**
+         * Requirements state option.
+         */
         _requirementsState: {
           type: String,
           value: 'open',
           observer: '_requirementsStateChanged'
         },
+        /**
+         * If true hide the options: sort, sort direction, search and requirements state.
+         */
         hideDisplayOptions: {
           type: Boolean,
           value: false,
           reflectToAttribute: true
         },
+        /**
+         * Calculates the request parameter if a display option changes.
+         */
         _requirementsRequestParams: {
           computed: '_computeRequirementsRequestParams(page, perPage, _sorting, _sortDirection, _requirementsState, _search)'
         }
       },
 
+      /**
+       * Computes the _requirementsRequestParams property.
+       *
+       * @param page
+       * @param perPage
+       * @param sorting
+       * @param sortDirection
+       * @param requirementsState
+       * @param search
+       * @private
+       */
       _computeRequirementsRequestParams: function (page, perPage, sorting, sortDirection, requirementsState, search) {
         // if we have a new sorting parameter, reset the sort direction
         if (this._lastRequestSorting !== sorting) {
@@ -299,17 +349,29 @@ Example:
         return {page: this.page, per_page: perPage, sort: sortDirection + sorting, state: requirementsState, search: search}
       },
 
+      /**
+       * Computes the _resourceURL property.
+       *
+       * @param baseUrl
+       * @param categoryId
+       * @private
+       */
       _computeResourceURL: function(baseUrl, categoryId) {
         return baseUrl + 'categories/' + categoryId + '/requirements';
       },
 
+      /**
+       * Computes the _frontendBaseUrl property.
+       *
+       * @param baseUrl
+       * @private
+       */
       _computeFrontendBaseUrl: function(baseUrl) {
         return baseUrl.slice(0, baseUrl.length - 8);
       },
 
       /**
-       * Queries the next page's requirements from the service.
-       *
+       * Queries the next page's requirements from the service.       *
        */
       nextPage: function () {
         this.page = this.page + 1;
@@ -367,6 +429,12 @@ Example:
         this._search = '';
       },
 
+      /**
+       * Observer for the _search property. Hide or display the search clear button.
+       *
+       * @param newValue
+       * @private
+       */
       _searchChanged: function(newValue) {
         if (newValue.length === 0) {
           this.$.searchClearButton.style.visibility = 'hidden';
