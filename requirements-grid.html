@@ -1,17 +1,6 @@
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../paper-card/paper-card.html">
-<link rel="import" href="../masonry-layout/masonry-layout.html">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../paper-listbox/paper-listbox.html">
@@ -24,7 +13,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="reqbaz-icons.html">
+
 <script src="../time-elements/time-elements.js"></script>
+<script src="../masonry/dist/masonry.pkgd.min.js"></script>
+
 <!--
 An element that gets url with attributes and fetches data in a masonry layout with pagination
 
@@ -53,7 +45,12 @@ Example:
 
       paper-card {
         width: 250px;
-        word-wrap: break-word;
+        /*word-wrap: break-word;*/
+      }
+
+      .grid-item {
+        width: 250px;
+        margin: 8px;
       }
 
       paper-card:hover {
@@ -78,25 +75,20 @@ Example:
 
       .card-content {
         width: 90%;
-        /*white-space: nowrap;*/
-        /*overflow: hidden;*/
-        /*text-overflow: ellipsis;*/
-        overflow: hidden;
-        position: relative;
-        height: 200px; /* exactly three lines */
+        overflow-y: hidden;
+        word-break: break-word;
+        word-wrap: break-word;
       }
 
-      .card-content:after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 98%;
-        height: 2em;
-        background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+      paper-card {
+        --paper-card-header-text: {
+          word-break: break-word;
+          word-wrap: break-word;
+        }
       }
 
       .card-actions {
+        width: 100%;
         text-align: center;
         padding: 0px 0px;
       }
@@ -114,7 +106,7 @@ Example:
 
     <iron-ajax id="requirementsRequest"
                auto
-               debounce-duration="300",
+               debounce-duration="300"
                url="[[_resourceURL]]"
                params='{{_requirementsRequestParams}}'
                handle-as="json"
@@ -161,41 +153,41 @@ Example:
       </div>
     </div>
 
-    <masonry-layout id="grids" column-width="250">
-      <template is="dom-repeat" items="[[data]]">
-        <a href="https://requirements-bazaar.org/projects/[[projectId]]/categories/[[categoryId]]/requirements/[[item.id]]" target="_blank">
+    <div id="grid">
+      <template is="dom-repeat" items="{{data}}" as="requirement" on-dom-change="_handleGridDomChange">
+        <a href="[[frontendBaseUrl]]/projects/[[projectId]]/categories/[[categoryId]]/requirements/[[requirement.id]]" target="_blank">
           <div class="grid-item">
-            <paper-card heading="{{item.name}}">
+            <paper-card heading="{{requirement.name}}">
               <time is="relative-time" class="time"
-                    datetime$="[[item.creationDate]]">
+                    datetime$="[[requirement.creationDate]]">
               </time>
-              <div class="card-content truncate">{{item.description}}</div>
+              <div class="card-content">{{requirement.description}}</div>
               <div class="card-actions">
                 <span>
                   <paper-button noink>
                     <iron-icon icon="star"></iron-icon>
-                    {{item.upVotes}}
+                    {{requirement.upVotes}}
                   </paper-button>
                   <paper-tooltip>Votes</paper-tooltip>
                 </span>
                 <span>
                   <paper-button noink>
                     <iron-icon icon="bookmark"></iron-icon>
-                    {{item.numberOfFollowers}}
+                    {{requirement.numberOfFollowers}}
                   </paper-button>
                   <paper-tooltip>Followers</paper-tooltip>
                 </span>
                 <span>
                   <paper-button noink>
                     <iron-icon icon="question-answer"></iron-icon>
-                    {{item.numberOfComments}}
+                    {{requirement.numberOfComments}}
                   </paper-button>
                   <paper-tooltip>Comments</paper-tooltip>
                 </span>
                 <span>
                   <paper-button noink>
                     <iron-icon icon="editor:attach-file"></iron-icon>
-                    {{item.numberOfAttachments}}
+                    {{requirement.numberOfAttachments}}
                   </paper-button>
                   <paper-tooltip>Attachments</paper-tooltip>
                 </span>
@@ -204,7 +196,7 @@ Example:
           </div>
         </a>
       </template>
-    </masonry-layout>
+    </div>
 
     <paper-button id="previous" raised on-tap="previousPage">Previous Page</paper-button>
     <paper-button id="next" raised on-tap="nextPage">Next Page</paper-button>
@@ -223,6 +215,10 @@ Example:
         baseUrl: {
           type: String,
           value: 'https://requirements-bazaar.org/bazaar/'
+        },
+        frontendBaseUrl: {
+          type: String,
+          computed: '_computeFrontendBaseUrl(baseUrl)'
         },
         categoryId: {
           type: Number,
@@ -303,8 +299,12 @@ Example:
         return {page: this.page, per_page: perPage, sort: sortDirection + sorting, state: requirementsState, search: search}
       },
 
-      _computeResourceURL: function (baseUrl, categoryId) {
+      _computeResourceURL: function(baseUrl, categoryId) {
         return baseUrl + 'categories/' + categoryId + '/requirements';
+      },
+
+      _computeFrontendBaseUrl: function(baseUrl) {
+        return baseUrl.slice(0, baseUrl.length - 8);
       },
 
       /**
@@ -401,6 +401,19 @@ Example:
         } else {
           this.$.stateMenuIcon.icon = 'assignment-turned-in';
         }
+      },
+
+      /**
+       * Generates masonry grid
+       *
+       * @private
+       */
+      _handleGridDomChange: function() {
+        requestAnimationFrame(function() {
+          var msnry = new Masonry(this.$.grid, {
+            itemSelector: '.grid-item'
+          });
+        }.bind(this));
       }
 
     });
