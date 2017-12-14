@@ -149,9 +149,20 @@ Example:
       </div>
     </div>
 
+    <div id="categories">
+      <paper-dropdown-menu label="Category">
+        <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_categoryId}}">
+          <paper-item value="0">Complete Project</paper-item>
+          <template is="dom-repeat" items="[[categoriesId]]" as="category">
+            <paper-item value="{{category}}">{{category}}</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+    </div>
+
     <div id="grid">
       <template is="dom-repeat" items="{{data}}" as="requirement" on-dom-change="_handleGridDomChange">
-        <a href="[[_frontendBaseUrl]]/projects/[[projectId]]/categories/[[categoryId]]/requirements/[[requirement.id]]" target="_blank">
+        <a href="[[_frontendBaseUrl]]/projects/[[projectId]]/categories/[[_categoryId]]/requirements/[[requirement.id]]" target="_blank">
           <div class="grid-item">
             <paper-card heading="{{requirement.name}}">
               <time is="relative-time" class="time"
@@ -209,7 +220,7 @@ Example:
          */
         _resourceURL: {
           type: String,
-          computed: '_computeResourceURL(baseUrl, categoryId)'
+          computed: '_computeResourceURL(baseUrl, projectId, _categoryId)'
         },
         /**
          * Base URL of the requirements bazaar instance to work with.
@@ -226,11 +237,18 @@ Example:
           computed: '_computeFrontendBaseUrl(baseUrl)'
         },
         /**
-         * Category Id of requirements which will be displayed.
+         * Selected CategoryId from categoryIds to load requirements.
          */
-        categoryId: {
+        _categoryId: {
           type: Number,
-          value: 1
+          value: 0 //this.get(['categoriesId', 1])
+        },
+        /**
+         * Array of categories Ids inside project to display.
+         */
+        categoriesId: {
+          type: Array,
+          value: function() { return []; }
         },
         /**
          * Project Id of requirements which will be displayed.
@@ -352,8 +370,13 @@ Example:
        * @param categoryId
        * @private
        */
-      _computeResourceURL: function(baseUrl, categoryId) {
-        return baseUrl + 'categories/' + categoryId + '/requirements';
+      _computeResourceURL: function(baseUrl, projectId, categoryId) {
+        var test = baseUrl + 'categories/' + categoryId + '/requirements';
+        if (categoryId == 0) {
+          return baseUrl + 'projects/' + projectId + '/requirements';
+        } else {
+          return baseUrl + 'categories/' + categoryId + '/requirements';
+        }
       },
 
       /**
