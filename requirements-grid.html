@@ -28,7 +28,7 @@ Example:
 
     <requirements-grid base-url="https://requirements-bazaar.org/beta/bazaar/"
                        project-id="1"
-                       category-id="1"
+                       categories-id="[1]"
                        page="0"
                        per-page="10">
     </requirements-grid>
@@ -100,14 +100,24 @@ Example:
       }
     </style>
 
+    <iron-ajax id="categoriesRequest"
+             auto
+             url="[[_categoriesResourceURL]]"
+             params='{"per_page":"100"}'
+             handle-as="json"
+             on-response="_setCategoriesSelect"
+             last-response="{{categories}}">
+    </iron-ajax>
+
+
     <iron-ajax id="requirementsRequest"
                auto
                debounce-duration="300"
-               url="[[_resourceURL]]"
+               url="[[_requirementsResourceURL]]"
                params='{{_requirementsRequestParams}}'
                handle-as="json"
                on-response="_showNextPage"
-               last-response="{{data}}">
+               last-response="{{requirements}}">
     </iron-ajax>
 
     <div id="display-options" class="layout horizontal wrap" hidden="[[hideDisplayOptions]]">
@@ -149,19 +159,18 @@ Example:
       </div>
     </div>
 
-    <div id="categories">
+    <div id="categories-select" hidden="[[hideCategoriesSelect]]">
       <paper-dropdown-menu label="Category">
         <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_categoryId}}">
-          <paper-item value="0">Complete Project</paper-item>
-          <template is="dom-repeat" items="[[categoriesId]]" as="category">
-            <paper-item value="{{category}}">{{category}}</paper-item>
+          <template is="dom-repeat" items="[[categories]]" as="category">
+            <paper-item value="{{category.id}}">{{category.name}}</paper-item>
           </template>
         </paper-listbox>
       </paper-dropdown-menu>
     </div>
 
     <div id="grid">
-      <template is="dom-repeat" items="{{data}}" as="requirement" on-dom-change="_handleGridDomChange">
+      <template is="dom-repeat" items="{{requirements}}" as="requirement" on-dom-change="_handleGridDomChange">
         <a href="[[_frontendBaseUrl]]/projects/[[projectId]]/categories/[[_categoryId]]/requirements/[[requirement.id]]" target="_blank">
           <div class="grid-item">
             <paper-card heading="{{requirement.name}}">
@@ -216,11 +225,18 @@ Example:
 
       properties: {
         /**
+         * Computed resource URL to fetch categories.
+         */
+        _categoriesResourceURL: {
+          type: String,
+          computed: 'computeCategoriesResourceURL(baseUrl, projectId)'
+        },
+        /**
          * Computed resource URL to fetch requirements.
          */
-        _resourceURL: {
+        _requirementsResourceURL: {
           type: String,
-          computed: '_computeResourceURL(baseUrl, projectId, _categoryId)'
+          computed: '_computeRequirementsResourceURL(baseUrl, projectId, _categoryId)'
         },
         /**
          * Base URL of the requirements bazaar instance to work with.
@@ -241,10 +257,11 @@ Example:
          */
         _categoryId: {
           type: Number,
-          value: 0 //this.get(['categoriesId', 1])
+          observer: '_categoryChanged'
         },
         /**
          * Array of categories Ids inside project to display.
+         * If you want only display one category you can hide the category select element with the hideCategoriesSelect property.
          */
         categoriesId: {
           type: Array,
@@ -254,8 +271,7 @@ Example:
          * Project Id of requirements which will be displayed.
          */
         projectId: {
-          type: Number,
-          value: 1
+          type: Number
         },
         /**
          * Page number.
@@ -315,6 +331,14 @@ Example:
           observer: '_requirementsStateChanged'
         },
         /**
+         * If true hide the categories select option.
+         */
+        hideCategoriesSelect: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
+        /**
          * If true hide the options: sort, sort direction, search and requirements state.
          */
         hideDisplayOptions: {
@@ -364,19 +388,58 @@ Example:
       },
 
       /**
-       * Computes the _resourceURL property.
+       * Computes the _categoriesResourceURL property.
+       *
+       * @param baseUrl
+       * @param projectId
+       * @private
+       *
+       */
+      computeCategoriesResourceURL: function(baseUrl, projectId) {
+        return baseUrl + 'projects/' + projectId + '/categories';
+      },
+
+      /**
+       * Computes the _requirementsResourceURL property.
        *
        * @param baseUrl
        * @param categoryId
        * @private
        */
-      _computeResourceURL: function(baseUrl, projectId, categoryId) {
-        var test = baseUrl + 'categories/' + categoryId + '/requirements';
-        if (categoryId == 0) {
-          return baseUrl + 'projects/' + projectId + '/requirements';
-        } else {
+      _computeRequirementsResourceURL: function(baseUrl, projectId, categoryId) {
           return baseUrl + 'categories/' + categoryId + '/requirements';
-        }
+      },
+
+      /**
+       * Set categories for select element after filtering the response.
+       *
+       * @private
+       */
+      _setCategoriesSelect: function() {
+        var filteredCategories = this.categories.filter(this._categoriesFilter, this);
+        this.categories = filteredCategories;
+        //var sortedCategories = this.categories.sort(this._categoriesSort);
+        //this.categories = sortedCategories;
+        this._categoryId = this.categories[0].id;
+      },
+
+      /**
+       * Filter categories response with categoriesId property.
+       * Does not work, because this is 'window' and not the webcomponent
+       *
+       * @private
+       */
+      _categoriesFilter: function(category) {
+        return (this.categoriesId.includes(category.id));
+      },
+
+      /**
+       * Sort categories reponse with categoriesId property.
+       *
+       * @private
+       */
+      _categoriesSort: function(a, b) {
+        return (this.categoriesId.indexOf(a) > this.categoriesId.indexOf(b));
       },
 
       /**
@@ -417,7 +480,7 @@ Example:
           showNextPage = response.xhr.getResponseHeader("x-next-page");
         } else {
           // If CORS is not enabled use old method to calculate
-          showNextPage = this.data.length != this.perPage
+          showNextPage = this.requirements.length != this.perPage
         }
         if (showNextPage) {
           this.$.next.disabled = true;
@@ -437,6 +500,15 @@ Example:
         } else {
           this.$.previous.disabled = false;
         }
+      },
+
+      /**
+       * Observer for the category property. Set page to 0.
+       *
+       * @private
+       */
+      _categoryChanged: function() {
+        this.page = 0;
       },
 
       /**
