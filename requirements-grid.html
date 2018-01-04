@@ -163,7 +163,7 @@ Example:
       <paper-dropdown-menu label="Category">
         <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_categoryId}}">
           <template is="dom-repeat" items="[[categories]]" as="category">
-            <paper-item value="{{category.id}}">{{category.name}}</paper-item>
+            <paper-item value="[[category.id]]">[[category.name]]</paper-item>
           </template>
         </paper-listbox>
       </paper-dropdown-menu>
@@ -171,7 +171,7 @@ Example:
 
     <div id="grid">
       <template is="dom-repeat" items="{{requirements}}" as="requirement" on-dom-change="_handleGridDomChange">
-        <a href="[[_frontendBaseUrl]]/projects/[[projectId]]/categories/[[_categoryId]]/requirements/[[requirement.id]]" target="_blank">
+        <a href="[[_frontendBaseUrl]]/projects/[[projectId]]/categories/[[requirement.categories.0.id]]/requirements/[[requirement.id]]" target="_blank">
           <div class="grid-item">
             <paper-card heading="{{requirement.name}}">
               <time is="relative-time" class="time"
@@ -272,6 +272,14 @@ Example:
          */
         projectId: {
           type: Number
+        },
+        /**
+         * Enable a "Complete Project" option to categories select and add all categories after.
+         */
+        completeProject: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
         },
         /**
          * Page number.
@@ -407,7 +415,12 @@ Example:
        * @private
        */
       _computeRequirementsResourceURL: function(baseUrl, projectId, categoryId) {
+        var test = this.categories[0];
+        if (categoryId == 0) {
+          return baseUrl + 'projects/' + projectId + '/requirements';
+        } else {
           return baseUrl + 'categories/' + categoryId + '/requirements';
+        }
       },
 
       /**
@@ -416,8 +429,16 @@ Example:
        * @private
        */
       _setCategoriesSelect: function() {
-        var filteredCategories = this.categories.filter(this._categoriesFilter, this);
-        this.categories = filteredCategories;
+        if (this.completeProject) {
+          var completeProjectOption = {
+            id: 0,
+            name: 'Complete Project'
+          };
+          this.categories.unshift(completeProjectOption);
+        } else {
+          var filteredCategories = this.categories.filter(this._categoriesFilter, this);
+          this.categories = filteredCategories;
+        }
         //var sortedCategories = this.categories.sort(this._categoriesSort);
         //this.categories = sortedCategories;
         this._categoryId = this.categories[0].id;
@@ -425,7 +446,6 @@ Example:
 
       /**
        * Filter categories response with categoriesId property.
-       * Does not work, because this is 'window' and not the webcomponent
        *
        * @private
        */
@@ -434,7 +454,8 @@ Example:
       },
 
       /**
-       * Sort categories reponse with categoriesId property.
+       * Sort categories response with categoriesId property.
+       * Does not work, because this is 'window' and not the webcomponent.
        *
        * @private
        */
