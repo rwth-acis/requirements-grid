@@ -436,11 +436,11 @@ Example:
           };
           this.categories.unshift(completeProjectOption);
         } else {
-          var filteredCategories = this.categories.filter(this._categoriesFilter, this);
+          var filteredCategories = this.categories.filter(this._categoriesFilter.bind(this));
           this.categories = filteredCategories;
         }
-        //var sortedCategories = this.categories.sort(this._categoriesSort);
-        //this.categories = sortedCategories;
+        var sortedCategories = this.categories.sort(this._categoriesSort.bind(this));
+        this.categories = sortedCategories;
         this._categoryId = this.categories[0].id;
       },
 
@@ -455,7 +455,6 @@ Example:
 
       /**
        * Sort categories response with categoriesId property.
-       * Does not work, because this is 'window' and not the webcomponent.
        *
        * @private
        */
