@@ -105,7 +105,7 @@ Example:
              url="[[_categoriesResourceURL]]"
              params='{"per_page":"100"}'
              handle-as="json"
-             on-response="_setCategoriesSelect"
+             on-response="_handleCategoriesResponse"
              last-response="{{categories}}">
     </iron-ajax>
 
@@ -263,7 +263,7 @@ Example:
          * Array of categories Ids inside project to display.
          * If you want only display one category you can hide the category select element with the hideCategoriesSelect property.
          */
-        categoriesId: {
+        categoryIds: {
           type: Array,
           value: function() { return []; }
         },
@@ -359,6 +359,9 @@ Example:
          */
         _requirementsRequestParams: {
           computed: '_computeRequirementsRequestParams(page, perPage, _sorting, _sortDirection, _requirementsState, _search)'
+        },
+        categories: {
+          type: Array
         }
       },
 
@@ -424,17 +427,18 @@ Example:
       },
 
       /**
-       * Set categories for select element after filtering the response.
+       * Handles the response of the request that gets all categories for a project. Sets the list of categories for the
+       * select element after filtering the response based on the categoryIds property.
        *
        * @private
        */
-      _setCategoriesSelect: function() {
+      _handleCategoriesResponse: function() {
         if (this.completeProject) {
           var completeProjectOption = {
             id: 0,
             name: 'Complete Project'
           };
-          this.categories.unshift(completeProjectOption);
+          this.unshift('categories', completeProjectOption);
         } else {
           var filteredCategories = this.categories.filter(this._categoriesFilter.bind(this));
           this.categories = filteredCategories;
@@ -445,21 +449,22 @@ Example:
       },
 
       /**
-       * Filter categories response with categoriesId property.
+       * Filter categories response with categoryIds property.
        *
        * @private
        */
       _categoriesFilter: function(category) {
-        return (this.categoriesId.includes(category.id));
+        return (this.categoryIds.includes(category.id));
       },
 
       /**
-       * Sort categories response with categoriesId property.
+       * Sort categories response with categoryIds property.
+       * Does not work, because this is 'window' and not the webcomponent.
        *
        * @private
        */
       _categoriesSort: function(a, b) {
-        return (this.categoriesId.indexOf(a) > this.categoriesId.indexOf(b));
+        return (this.categoryIds.indexOf(a) > this.categoryIds.indexOf(b));
       },
 
       /**
