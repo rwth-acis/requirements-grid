@@ -28,7 +28,7 @@ Example:
 
     <requirements-grid base-url="https://requirements-bazaar.org/beta/bazaar/"
                        project-id="1"
-                       categories-id="[1]"
+                       category-ids="[1,26,27]"
                        page="0"
                        per-page="10">
     </requirements-grid>
@@ -159,7 +159,7 @@ Example:
       </div>
     </div>
 
-    <div id="categories-select" hidden="[[hideCategoriesSelect]]">
+    <div id="categories-select" hidden="[[_hideCategoriesSelect]]">
       <paper-dropdown-menu label="Category">
         <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_categoryId}}">
           <template is="dom-repeat" items="[[categories]]" as="category">
@@ -261,7 +261,8 @@ Example:
         },
         /**
          * Array of categories Ids inside project to display.
-         * If you want only display one category you can hide the category select element with the hideCategoriesSelect property.
+         * To show all categories of the project leave categoryIds empty.
+         * If categoryIds only contains one entry, the categories select element will be hidden.
          */
         categoryIds: {
           type: Array,
@@ -272,14 +273,6 @@ Example:
          */
         projectId: {
           type: Number
-        },
-        /**
-         * Enable a "Complete Project" option to categories select and add all categories after.
-         */
-        completeProject: {
-          type: Boolean,
-          value: false,
-          reflectToAttribute: true
         },
         /**
          * Page number.
@@ -339,12 +332,11 @@ Example:
           observer: '_requirementsStateChanged'
         },
         /**
-         * If true hide the categories select option.
+         * Computed if categories select element is hidden.
          */
-        hideCategoriesSelect: {
+        _hideCategoriesSelect: {
           type: Boolean,
-          value: false,
-          reflectToAttribute: true
+          computed: '_computeCategorySelectHidden(categoryIds)'
         },
         /**
          * If true hide the options: sort, sort direction, search and requirements state.
@@ -418,7 +410,6 @@ Example:
        * @private
        */
       _computeRequirementsResourceURL: function(baseUrl, projectId, categoryId) {
-        var test = this.categories[0];
         if (categoryId == 0) {
           return baseUrl + 'projects/' + projectId + '/requirements';
         } else {
@@ -433,7 +424,7 @@ Example:
        * @private
        */
       _handleCategoriesResponse: function() {
-        if (this.completeProject) {
+        if (this.categoryIds.length == 0) {
           var completeProjectOption = {
             id: 0,
             name: 'Complete Project'
@@ -442,9 +433,9 @@ Example:
         } else {
           var filteredCategories = this.categories.filter(this._categoriesFilter.bind(this));
           this.categories = filteredCategories;
+          var sortedCategories = this.categories.sort(this._categoriesSort.bind(this));
+          this.categories = sortedCategories;
         }
-        var sortedCategories = this.categories.sort(this._categoriesSort.bind(this));
-        this.categories = sortedCategories;
         this._categoryId = this.categories[0].id;
       },
 
@@ -459,12 +450,11 @@ Example:
 
       /**
        * Sort categories response with categoryIds property.
-       * Does not work, because this is 'window' and not the webcomponent.
        *
        * @private
        */
       _categoriesSort: function(a, b) {
-        return (this.categoryIds.indexOf(a) > this.categoryIds.indexOf(b));
+        return (this.categoryIds.indexOf(a.id) > this.categoryIds.indexOf(b.id));
       },
 
       /**
@@ -475,6 +465,16 @@ Example:
        */
       _computeFrontendBaseUrl: function(baseUrl) {
         return baseUrl.slice(0, baseUrl.length - 8);
+      },
+
+      /**
+       * Computes the _hideCategoriesSelect property.
+       *
+       * @param categoryIds
+       * @private
+       */
+      _computeCategorySelectHidden: function(categoryIds){
+        return (categoryIds.length == 1);
       },
 
       /**
