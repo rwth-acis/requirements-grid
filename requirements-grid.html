@@ -106,7 +106,7 @@ Example:
              params='{"per_page":"100"}'
              handle-as="json"
              on-response="_handleCategoriesResponse"
-             last-response="{{categories}}">
+             last-response="{{_categories}}">
     </iron-ajax>
 
 
@@ -162,7 +162,7 @@ Example:
     <div id="categories-select" hidden="[[_hideCategoriesSelect]]">
       <paper-dropdown-menu label="Category">
         <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_categoryId}}">
-          <template is="dom-repeat" items="[[categories]]" as="category">
+          <template is="dom-repeat" items="[[_categories]]" as="category">
             <paper-item value="[[category.id]]">[[category.name]]</paper-item>
           </template>
         </paper-listbox>
@@ -269,6 +269,12 @@ Example:
           value: function() { return []; }
         },
         /**
+         * Fetched categories to use inside category select element.
+         */
+        _categories: {
+          type: Array
+        },
+        /**
          * Project Id of requirements which will be displayed.
          */
         projectId: {
@@ -351,9 +357,6 @@ Example:
          */
         _requirementsRequestParams: {
           computed: '_computeRequirementsRequestParams(page, perPage, _sorting, _sortDirection, _requirementsState, _search)'
-        },
-        categories: {
-          type: Array
         }
       },
 
@@ -429,14 +432,14 @@ Example:
             id: 0,
             name: 'Complete Project'
           };
-          this.unshift('categories', completeProjectOption);
+          this.unshift('_categories', completeProjectOption);
         } else {
-          var filteredCategories = this.categories.filter(this._categoriesFilter.bind(this));
-          this.categories = filteredCategories;
-          var sortedCategories = this.categories.sort(this._categoriesSort.bind(this));
-          this.categories = sortedCategories;
+          var filteredCategories = this._categories.filter(this._categoriesFilter.bind(this));
+          this._categories = filteredCategories;
+          var sortedCategories = this._categories.sort(this._categoriesSort.bind(this));
+          this._categories = sortedCategories;
         }
-        this._categoryId = this.categories[0].id;
+        this._categoryId = this._categories[0].id;
       },
 
       /**
@@ -478,7 +481,7 @@ Example:
       },
 
       /**
-       * Queries the next page's requirements from the service.       *
+       * Queries the next page's requirements from the service.
        */
       nextPage: function () {
         this.page = this.page + 1;
