@@ -43,6 +43,14 @@ Example:
         display: block;
       }
 
+      #menu > *{
+        padding: 0px 10px 0px;
+      }
+
+      #search {
+        min-width: 200px;
+      }
+
       paper-card {
         width: 250px;
         --paper-card-header-text: {
@@ -101,12 +109,12 @@ Example:
     </style>
 
     <iron-ajax id="categoriesRequest"
-             auto
-             url="[[_categoriesResourceURL]]"
-             params='{"per_page":"100"}'
-             handle-as="json"
-             on-response="_handleCategoriesResponse"
-             last-response="{{_categories}}">
+               auto
+               url="[[_categoriesResourceURL]]"
+               params='{"per_page":"100"}'
+               handle-as="json"
+               on-response="_handleCategoriesResponse"
+               last-response="{{_categories}}">
     </iron-ajax>
 
 
@@ -120,8 +128,17 @@ Example:
                last-response="{{requirements}}">
     </iron-ajax>
 
-    <div id="display-options" class="layout horizontal wrap" hidden="[[hideDisplayOptions]]">
-      <div id="sorting" class="horizontal layout end">
+    <div id="menu" class="layout horizontal wrap end">
+      <div id="categories-select" hidden="[[_hideCategoriesSelect]]">
+        <paper-dropdown-menu label="Category">
+          <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_categoryId}}">
+            <template is="dom-repeat" items="[[_categories]]" as="category">
+              <paper-item value="[[category.id]]">[[category.name]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+      </div>
+      <div id="sorting" class="layout horizontal end" hidden="[[hideDisplayOptions]]">
         <paper-dropdown-menu label="Sorting">
           <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_sorting}}">
             <paper-item value="name">A-Z</paper-item>
@@ -141,15 +158,15 @@ Example:
           </paper-menu>
         </paper-menu-button>
       </div>
-      <div id="search" class="flex">
+      <div id="search" class="flex" hidden="[[hideDisplayOptions]]">
         <paper-input class="large" label="Search" value="{{_search}}">
           <iron-icon icon="search" prefix></iron-icon>
           <paper-icon-button id="searchClearButton" suffix on-tap="_clearSearchInput"
                              icon="clear" alt="clear" title="clear" tabindex="0"></paper-icon-button>
         </paper-input>
       </div>
-      <div id="realized" class="horizontal layout end">
-        <paper-menu-button horizontal-align="right">
+      <div id="realized" hidden="[[hideDisplayOptions]]">
+        <paper-menu-button>
           <paper-icon-button id="stateMenuIcon" icon="assignment" class="dropdown-trigger"></paper-icon-button>
           <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_requirementsState}}">
             <paper-item value="open">Open</paper-item>
@@ -159,19 +176,10 @@ Example:
       </div>
     </div>
 
-    <div id="categories-select" hidden="[[_hideCategoriesSelect]]">
-      <paper-dropdown-menu label="Category">
-        <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_categoryId}}">
-          <template is="dom-repeat" items="[[_categories]]" as="category">
-            <paper-item value="[[category.id]]">[[category.name]]</paper-item>
-          </template>
-        </paper-listbox>
-      </paper-dropdown-menu>
-    </div>
-
     <div id="grid">
       <template is="dom-repeat" items="{{requirements}}" as="requirement" on-dom-change="_handleGridDomChange">
-        <a href="[[_frontendBaseUrl]]/projects/[[projectId]]/categories/[[requirement.categories.0.id]]/requirements/[[requirement.id]]" target="_blank">
+        <a href="[[_frontendBaseUrl]]/projects/[[projectId]]/categories/[[requirement.categories.0.id]]/requirements/[[requirement.id]]"
+           target="_blank">
           <div class="grid-item">
             <paper-card heading="{{requirement.name}}">
               <time is="relative-time" class="time"
@@ -266,7 +274,9 @@ Example:
          */
         categoryIds: {
           type: Array,
-          value: function() { return []; }
+          value: function () {
+            return [];
+          }
         },
         /**
          * Fetched categories to use inside category select element.
@@ -374,13 +384,13 @@ Example:
       _computeRequirementsRequestParams: function (page, perPage, sorting, sortDirection, requirementsState, search) {
         // if we have a new sorting parameter, reset the sort direction
         if (this._lastRequestSorting !== sorting) {
-            if (['date', 'last_activity', 'vote', 'comment', 'follower'].indexOf(sorting) >= 0) {
-                this._sortDirection = '-';
-                sortDirection = '-';
-            } else {
-                this._sortDirection = '+';
-                sortDirection = '+';
-            }
+          if (['date', 'last_activity', 'vote', 'comment', 'follower'].indexOf(sorting) >= 0) {
+            this._sortDirection = '-';
+            sortDirection = '-';
+          } else {
+            this._sortDirection = '+';
+            sortDirection = '+';
+          }
         }
         this._lastRequestSorting = sorting;
 
@@ -390,7 +400,13 @@ Example:
         }
         this._lastRequestPage = this.page;
 
-        return {page: this.page, per_page: perPage, sort: sortDirection + sorting, state: requirementsState, search: search}
+        return {
+          page: this.page,
+          per_page: perPage,
+          sort: sortDirection + sorting,
+          state: requirementsState,
+          search: search
+        }
       },
 
       /**
@@ -401,7 +417,7 @@ Example:
        * @private
        *
        */
-      computeCategoriesResourceURL: function(baseUrl, projectId) {
+      computeCategoriesResourceURL: function (baseUrl, projectId) {
         return baseUrl + 'projects/' + projectId + '/categories';
       },
 
@@ -412,7 +428,7 @@ Example:
        * @param categoryId
        * @private
        */
-      _computeRequirementsResourceURL: function(baseUrl, projectId, categoryId) {
+      _computeRequirementsResourceURL: function (baseUrl, projectId, categoryId) {
         if (categoryId == 0) {
           return baseUrl + 'projects/' + projectId + '/requirements';
         } else {
@@ -426,7 +442,7 @@ Example:
        *
        * @private
        */
-      _handleCategoriesResponse: function() {
+      _handleCategoriesResponse: function () {
         if (this.categoryIds.length == 0) {
           var completeProjectOption = {
             id: 0,
@@ -447,7 +463,7 @@ Example:
        *
        * @private
        */
-      _categoriesFilter: function(category) {
+      _categoriesFilter: function (category) {
         return (this.categoryIds.includes(category.id));
       },
 
@@ -456,7 +472,7 @@ Example:
        *
        * @private
        */
-      _categoriesSort: function(a, b) {
+      _categoriesSort: function (a, b) {
         return (this.categoryIds.indexOf(a.id) > this.categoryIds.indexOf(b.id));
       },
 
@@ -466,7 +482,7 @@ Example:
        * @param baseUrl
        * @private
        */
-      _computeFrontendBaseUrl: function(baseUrl) {
+      _computeFrontendBaseUrl: function (baseUrl) {
         return baseUrl.slice(0, baseUrl.length - 8);
       },
 
@@ -476,7 +492,7 @@ Example:
        * @param categoryIds
        * @private
        */
-      _computeCategorySelectHidden: function(categoryIds){
+      _computeCategorySelectHidden: function (categoryIds) {
         return (categoryIds.length == 1);
       },
 
@@ -535,7 +551,7 @@ Example:
        *
        * @private
        */
-      _categoryChanged: function() {
+      _categoryChanged: function () {
         this.page = 0;
       },
 
@@ -544,7 +560,7 @@ Example:
        *
        * @private
        */
-      _clearSearchInput: function() {
+      _clearSearchInput: function () {
         this._search = '';
       },
 
@@ -554,7 +570,7 @@ Example:
        * @param newValue
        * @private
        */
-      _searchChanged: function(newValue) {
+      _searchChanged: function (newValue) {
         if (newValue.length === 0) {
           this.$.searchClearButton.style.visibility = 'hidden';
         } else {
@@ -568,7 +584,7 @@ Example:
        * @param newValue
        * @private
        */
-      _sortDirectionChanged: function(newValue) {
+      _sortDirectionChanged: function (newValue) {
         if (newValue === '+') {
           this.$.sortDirectionIcon.icon = 'reqbaz:sort-ascending';
         } else {
@@ -582,7 +598,7 @@ Example:
        * @param newValue
        * @private
        */
-      _requirementsStateChanged: function(newValue) {
+      _requirementsStateChanged: function (newValue) {
         if (newValue === 'open') {
           this.$.stateMenuIcon.icon = 'assignment';
         } else {
@@ -595,8 +611,8 @@ Example:
        *
        * @private
        */
-      _handleGridDomChange: function() {
-        requestAnimationFrame(function() {
+      _handleGridDomChange: function () {
+        requestAnimationFrame(function () {
           var msnry = new Masonry(this.$.grid, {
             itemSelector: '.grid-item'
           });
