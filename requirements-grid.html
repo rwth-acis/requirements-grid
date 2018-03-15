@@ -28,7 +28,7 @@ Example:
 
     <requirements-grid base-url="https://requirements-bazaar.org/beta/bazaar/"
                        project-id="1"
-                       category-id="1"
+                       category-ids="[1,26,27]"
                        page="0"
                        per-page="10">
     </requirements-grid>
@@ -41,6 +41,14 @@ Example:
     <style>
       :host {
         display: block;
+      }
+
+      #menu > * {
+        padding: 0px 10px 0px;
+      }
+
+      #search {
+        min-width: 200px;
       }
 
       paper-card {
@@ -100,18 +108,37 @@ Example:
       }
     </style>
 
+    <iron-ajax id="categoriesRequest"
+               auto
+               url="[[_categoriesResourceURL]]"
+               params='{"per_page":"100"}'
+               handle-as="json"
+               on-response="_handleCategoriesResponse"
+               last-response="{{_categories}}">
+    </iron-ajax>
+
+
     <iron-ajax id="requirementsRequest"
                auto
                debounce-duration="300"
-               url="[[_resourceURL]]"
+               url="[[_requirementsResourceURL]]"
                params='{{_requirementsRequestParams}}'
                handle-as="json"
                on-response="_showNextPage"
-               last-response="{{data}}">
+               last-response="{{requirements}}">
     </iron-ajax>
 
-    <div id="display-options" class="layout horizontal wrap" hidden="[[hideDisplayOptions]]">
-      <div id="sorting" class="horizontal layout end">
+    <div id="menu" class="layout horizontal wrap end">
+      <div id="categories-select" hidden="[[_hideCategoriesSelect]]">
+        <paper-dropdown-menu label="Category">
+          <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_categoryId}}">
+            <template is="dom-repeat" items="[[_categories]]" as="category">
+              <paper-item value="[[category.id]]">[[category.name]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+      </div>
+      <div id="sorting" class="layout horizontal end" hidden="[[hideDisplayOptions]]">
         <paper-dropdown-menu label="Sorting">
           <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_sorting}}">
             <paper-item value="name">A-Z</paper-item>
@@ -131,15 +158,15 @@ Example:
           </paper-menu>
         </paper-menu-button>
       </div>
-      <div id="search" class="flex">
+      <div id="search" class="flex" hidden="[[hideDisplayOptions]]">
         <paper-input class="large" label="Search" value="{{_search}}">
           <iron-icon icon="search" prefix></iron-icon>
           <paper-icon-button id="searchClearButton" suffix on-tap="_clearSearchInput"
                              icon="clear" alt="clear" title="clear" tabindex="0"></paper-icon-button>
         </paper-input>
       </div>
-      <div id="realized" class="horizontal layout end">
-        <paper-menu-button horizontal-align="right">
+      <div id="realized" hidden="[[hideDisplayOptions]]">
+        <paper-menu-button>
           <paper-icon-button id="stateMenuIcon" icon="assignment" class="dropdown-trigger"></paper-icon-button>
           <paper-menu class="dropdown-content" attr-for-selected="value" selected="{{_requirementsState}}">
             <paper-item value="open">Open</paper-item>
@@ -150,8 +177,9 @@ Example:
     </div>
 
     <div id="grid">
-      <template is="dom-repeat" items="{{data}}" as="requirement" on-dom-change="_handleGridDomChange">
-        <a href="[[_frontendBaseUrl]]/projects/[[projectId]]/categories/[[categoryId]]/requirements/[[requirement.id]]" target="_blank">
+      <template is="dom-repeat" items="{{requirements}}" as="requirement" on-dom-change="_handleGridDomChange">
+        <a href="[[_frontendBaseUrl]]/projects/[[projectId]]/categories/[[requirement.categories.0.id]]/requirements/[[requirement.id]]"
+           target="_blank">
           <div class="grid-item">
             <paper-card heading="{{requirement.name}}">
               <time is="relative-time" class="time"
@@ -205,11 +233,18 @@ Example:
 
       properties: {
         /**
+         * Computed resource URL to fetch categories.
+         */
+        _categoriesResourceURL: {
+          type: String,
+          computed: 'computeCategoriesResourceURL(baseUrl, projectId)'
+        },
+        /**
          * Computed resource URL to fetch requirements.
          */
-        _resourceURL: {
+        _requirementsResourceURL: {
           type: String,
-          computed: '_computeResourceURL(baseUrl, categoryId)'
+          computed: '_computeRequirementsResourceURL(baseUrl, projectId, _categoryId)'
         },
         /**
          * Base URL of the requirements bazaar instance to work with.
@@ -226,18 +261,34 @@ Example:
           computed: '_computeFrontendBaseUrl(baseUrl)'
         },
         /**
-         * Category Id of requirements which will be displayed.
+         * Selected CategoryId from categoryIds to load requirements.
          */
-        categoryId: {
+        _categoryId: {
           type: Number,
-          value: 1
+          observer: '_categoryChanged'
+        },
+        /**
+         * Array of categories Ids inside project to display.
+         * To show all categories of the project leave categoryIds empty.
+         * If categoryIds only contains one entry, the categories select element will be hidden.
+         */
+        categoryIds: {
+          type: Array,
+          value: function() {
+            return [];
+          }
+        },
+        /**
+         * Fetched categories to use inside category select element.
+         */
+        _categories: {
+          type: Array
         },
         /**
          * Project Id of requirements which will be displayed.
          */
         projectId: {
-          type: Number,
-          value: 1
+          type: Number
         },
         /**
          * Page number.
@@ -297,6 +348,13 @@ Example:
           observer: '_requirementsStateChanged'
         },
         /**
+         * Computed if categories select element is hidden.
+         */
+        _hideCategoriesSelect: {
+          type: Boolean,
+          computed: '_computeCategorySelectHidden(categoryIds)'
+        },
+        /**
          * If true hide the options: sort, sort direction, search and requirements state.
          */
         hideDisplayOptions: {
@@ -323,16 +381,16 @@ Example:
        * @param search
        * @private
        */
-      _computeRequirementsRequestParams: function (page, perPage, sorting, sortDirection, requirementsState, search) {
+      _computeRequirementsRequestParams: function(page, perPage, sorting, sortDirection, requirementsState, search) {
         // if we have a new sorting parameter, reset the sort direction
         if (this._lastRequestSorting !== sorting) {
-            if (['date', 'last_activity', 'vote', 'comment', 'follower'].indexOf(sorting) >= 0) {
-                this._sortDirection = '-';
-                sortDirection = '-';
-            } else {
-                this._sortDirection = '+';
-                sortDirection = '+';
-            }
+          if (['date', 'last_activity', 'vote', 'comment', 'follower'].indexOf(sorting) >= 0) {
+            this._sortDirection = '-';
+            sortDirection = '-';
+          } else {
+            this._sortDirection = '+';
+            sortDirection = '+';
+          }
         }
         this._lastRequestSorting = sorting;
 
@@ -342,18 +400,80 @@ Example:
         }
         this._lastRequestPage = this.page;
 
-        return {page: this.page, per_page: perPage, sort: sortDirection + sorting, state: requirementsState, search: search}
+        return {
+          page: this.page,
+          per_page: perPage,
+          sort: sortDirection + sorting,
+          state: requirementsState,
+          search: search
+        }
       },
 
       /**
-       * Computes the _resourceURL property.
+       * Computes the _categoriesResourceURL property.
+       *
+       * @param baseUrl
+       * @param projectId
+       * @private
+       *
+       */
+      computeCategoriesResourceURL: function(baseUrl, projectId) {
+        return baseUrl + 'projects/' + projectId + '/categories';
+      },
+
+      /**
+       * Computes the _requirementsResourceURL property.
        *
        * @param baseUrl
        * @param categoryId
        * @private
        */
-      _computeResourceURL: function(baseUrl, categoryId) {
-        return baseUrl + 'categories/' + categoryId + '/requirements';
+      _computeRequirementsResourceURL: function(baseUrl, projectId, categoryId) {
+        if (categoryId == 0) {
+          return baseUrl + 'projects/' + projectId + '/requirements';
+        } else {
+          return baseUrl + 'categories/' + categoryId + '/requirements';
+        }
+      },
+
+      /**
+       * Handles the response of the request that gets all categories for a project. Sets the list of categories for the
+       * select element after filtering the response based on the categoryIds property.
+       *
+       * @private
+       */
+      _handleCategoriesResponse: function() {
+        if (this.categoryIds.length == 0) {
+          var completeProjectOption = {
+            id: 0,
+            name: 'Complete Project'
+          };
+          this.unshift('_categories', completeProjectOption);
+        } else {
+          var filteredCategories = this._categories.filter(this._categoriesFilter.bind(this));
+          this._categories = filteredCategories;
+          var sortedCategories = this._categories.sort(this._categoriesSort.bind(this));
+          this._categories = sortedCategories;
+        }
+        this._categoryId = this._categories[0].id;
+      },
+
+      /**
+       * Filter categories response with categoryIds property.
+       *
+       * @private
+       */
+      _categoriesFilter: function(category) {
+        return (this.categoryIds.includes(category.id));
+      },
+
+      /**
+       * Sort categories response with categoryIds property.
+       *
+       * @private
+       */
+      _categoriesSort: function(a, b) {
+        return (this.categoryIds.indexOf(a.id) > this.categoryIds.indexOf(b.id));
       },
 
       /**
@@ -367,16 +487,26 @@ Example:
       },
 
       /**
-       * Queries the next page's requirements from the service.       *
+       * Computes the _hideCategoriesSelect property.
+       *
+       * @param categoryIds
+       * @private
        */
-      nextPage: function () {
+      _computeCategorySelectHidden: function(categoryIds) {
+        return (categoryIds.length == 1);
+      },
+
+      /**
+       * Queries the next page's requirements from the service.
+       */
+      nextPage: function() {
         this.page = this.page + 1;
       },
 
       /**
        * Queries the previous page's requirements from the service.
        */
-      previousPage: function () {
+      previousPage: function() {
         this.page = this.page - 1;
       },
 
@@ -386,7 +516,7 @@ Example:
        *
        * @private
        */
-      _showNextPage: function (event, response) {
+      _showNextPage: function(event, response) {
         var CORS = response.xhr.getAllResponseHeaders().indexOf("x-next-page") !== -1;
         var showNextPage;
         if (CORS) {
@@ -394,7 +524,7 @@ Example:
           showNextPage = response.xhr.getResponseHeader("x-next-page");
         } else {
           // If CORS is not enabled use old method to calculate
-          showNextPage = this.data.length != this.perPage
+          showNextPage = this.requirements.length != this.perPage
         }
         if (showNextPage) {
           this.$.next.disabled = true;
@@ -408,12 +538,21 @@ Example:
        *
        * @private
        */
-      _pageChanged: function () {
+      _pageChanged: function() {
         if (this.page == 0) {
           this.$.previous.disabled = true;
         } else {
           this.$.previous.disabled = false;
         }
+      },
+
+      /**
+       * Observer for the category property. Set page to 0.
+       *
+       * @private
+       */
+      _categoryChanged: function() {
+        this.page = 0;
       },
 
       /**
