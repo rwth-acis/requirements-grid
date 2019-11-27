@@ -1,0 +1,25 @@
+{
+  "name": "requirements-grid",
+  "version": "1.0.0",
+  "description": "A Requirements Grid Web Component, requirements posted in Requirements Bazaar, built using Polymer 1.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rwth-acis/requirements-grid.git"
+  },
+  "keywords": [],
+  "author": "István Koren, Martin Hug",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rwth-acis/requirements-grid/issues"
+  },
+  "homepage": "https://github.com/rwth-acis/requirements-grid#readme"
+}
