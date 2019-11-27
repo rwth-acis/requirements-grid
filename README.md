@@ -1,5 +1,5 @@
 # requirements-grid
-A Requirements Grid Web Component, requirements posted in Requirements Bazaar, built using Polymer.
+A Requirements Grid Web Component, requirements posted in Requirements Bazaar, built using Polymer 1.
 
 See the [component page](https://rwth-acis.github.io/requirements-grid/components/requirements-grid/) for more information.
 
