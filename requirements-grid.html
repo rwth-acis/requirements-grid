@@ -524,12 +524,12 @@ Example:
           showNextPage = response.xhr.getResponseHeader("x-next-page");
         } else {
           // If CORS is not enabled use old method to calculate
-          showNextPage = this.requirements.length != this.perPage
+          showNextPage = this.requirements.length == this.perPage
         }
         if (showNextPage) {
-          this.$.next.disabled = true;
-        } else {
           this.$.next.disabled = false;
+        } else {
+          this.$.next.disabled = true;
         }
       },
 
