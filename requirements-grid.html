@@ -72,6 +72,11 @@ Example:
         margin: 10px;
       }
 
+      .card-actions paper-button[disabled] {
+        color: black;
+        background-color: white;
+      }
+
       a {
         color: inherit;
         background-color: inherit;
@@ -112,6 +117,7 @@ Example:
                auto
                url="[[_categoriesResourceURL]]"
                params='{"per_page":"100"}'
+               headers='[[authHeader]]'
                handle-as="json"
                on-response="_handleCategoriesResponse"
                last-response="{{_categories}}">
@@ -123,6 +129,7 @@ Example:
                debounce-duration="300"
                url="[[_requirementsResourceURL]]"
                params='{{_requirementsRequestParams}}'
+               headers="[[authHeader]]"
                handle-as="json"
                on-response="_showNextPage"
                last-response="{{requirements}}">
@@ -178,47 +185,58 @@ Example:
 
     <div id="grid">
       <template is="dom-repeat" items="{{requirements}}" as="requirement" on-dom-change="_handleGridDomChange">
-        <a href="[[_frontendBaseUrl]]/projects/[[projectId]]/categories/[[requirement.categories.0.id]]/requirements/[[requirement.id]]"
-           target="_blank">
-          <div class="grid-item">
-            <paper-card heading="{{requirement.name}}">
-              <time is="relative-time" class="time"
-                    datetime$="[[requirement.creationDate]]">
-              </time>
-              <div class="card-content">{{requirement.description}}</div>
-              <div class="card-actions">
-                <span>
-                  <paper-button noink>
-                    <iron-icon icon="star"></iron-icon>
+        <div class="grid-item">
+          <paper-card heading="{{requirement.name}}">
+            <time is="relative-time" class="time"
+                  datetime$="[[requirement.creationDate]]">
+            </time>
+            <div class="card-content">{{requirement.description}}</div>
+            <div class="card-actions">
+              <span>
+                <paper-button
+                          disabled="[[!_authorized]]">
+                    <iron-icon
+                            icon="[[_calculateVoteIcon(requirement.userVoted)]]"
+                            on-tap=''>
+                    </iron-icon>
                     {{requirement.upVotes}}
-                  </paper-button>
-                  <paper-tooltip>Votes</paper-tooltip>
-                </span>
-                <span>
-                  <paper-button noink>
-                    <iron-icon icon="bookmark"></iron-icon>
+                </paper-button>
+                <paper-tooltip>Votes</paper-tooltip>
+              </span>
+              <span>
+                  <paper-button
+                          disabled="[[!_authorized]]">
+                    <iron-icon
+                            icon="[[_calculateFollowIcon(requirement.isFollower)]]"
+                            on-tap=''>
+                    </iron-icon>
                     {{requirement.numberOfFollowers}}
                   </paper-button>
                   <paper-tooltip>Followers</paper-tooltip>
-                </span>
-                <span>
-                  <paper-button noink>
-                    <iron-icon icon="question-answer"></iron-icon>
+              </span>
+              <span>
+                  <paper-button
+                          disabled="true">
+                    <iron-icon
+                            icon="question-answer">
+                    </iron-icon>
                     {{requirement.numberOfComments}}
                   </paper-button>
                   <paper-tooltip>Comments</paper-tooltip>
-                </span>
-                <span>
-                  <paper-button noink>
-                    <iron-icon icon="editor:attach-file"></iron-icon>
+              </span>
+              <span>
+                  <paper-button
+                          disabled="true">
+                    <iron-icon
+                            icon="editor:attach-file">
+                    </iron-icon>
                     {{requirement.numberOfAttachments}}
                   </paper-button>
                   <paper-tooltip>Attachments</paper-tooltip>
-                </span>
-              </div>
-            </paper-card>
-          </div>
-        </a>
+              </span>
+            </div>
+          </paper-card>
+        </div>
       </template>
     </div>
 
@@ -232,6 +250,25 @@ Example:
       is: 'requirements-grid',
 
       properties: {
+
+        /**
+         * Computes if user is authorized.
+         */
+        _authorized: {
+          type: Boolean,
+          notify: true,
+          computed: '_isAuthorized()'
+        },
+
+        /**
+         * Authorization Header with fields: 'access-token', 'Authorization' and 'oidc_provider'.
+         * If authHeader is set, requirements-grid will use them for all requests.
+         * If authHeader is set, requirements-grid will add functionality for logged in user.
+         */
+        authHeader: {
+          type: Object,
+          notify: true
+        },
         /**
          * Computed resource URL to fetch categories.
          */
@@ -617,7 +654,44 @@ Example:
             itemSelector: '.grid-item'
           });
         }.bind(this));
-      }
+      },
+
+      /**
+       * Calculated if authHeader is set. Later this should also expect outdated tokens.
+       *
+       * @private
+       */
+      _isAuthorized: function() {
+        return this.authHeader.hasOwnProperty("access-token") && this.authHeader.hasOwnProperty("Authorization");
+      },
+
+      /**
+       * Calculates the specific favorite icon to show if user voted on requirement.
+       *
+       * @param vote the vote field coming from the backend, either 'UP_VOTE' or 'NO_VOTE'.
+       * @returns {string} the icon
+       * @private
+       */
+      _calculateVoteIcon: function(vote) {
+        if (this._authorized && (vote === 'UP_VOTE')) {
+          return 'favorite';
+        }
+        return 'favorite-border';
+      },
+
+      /**
+       * Calculates the specific bookmark icon to show is user is following a requirement.
+       *
+       * @param follow the follow field coming from the backend.
+       * @returns {string} the icon
+       * @private
+       */
+      _calculateFollowIcon: function(follow) {
+        if (this._authorized && (follow === 'true')) {
+          return 'bookmark';
+        }
+        return 'bookmark-border';
+      },
 
     });
   </script>
