@@ -1,6 +1,6 @@
 {
   "name": "requirements-grid",
-  "version": "1.0.0",
+  "version": "1.5.0",
   "description": "A Requirements Grid Web Component, requirements posted in Requirements Bazaar, built using Polymer 1.",
   "main": "index.js",
   "directories": {
