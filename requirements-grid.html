@@ -117,7 +117,7 @@ Example:
                auto
                url="[[_categoriesResourceURL]]"
                params='{"per_page":"100"}'
-               headers='[[authHeader]]'
+               headers='[[_authHeader]]'
                handle-as="json"
                on-response="_handleCategoriesResponse"
                last-response="{{_categories}}">
@@ -129,7 +129,7 @@ Example:
                debounce-duration="300"
                url="[[_requirementsResourceURL]]"
                params='{{_requirementsRequestParams}}'
-               headers="[[authHeader]]"
+               headers="[[_authHeader]]"
                handle-as="json"
                on-response="_showNextPage"
                last-response="{{requirements}}">
@@ -194,7 +194,7 @@ Example:
             <div class="card-actions">
               <span>
                 <paper-button
-                          disabled="[[!_authorized]]">
+                          disabled="true">
                     <iron-icon
                             icon="[[_calculateVoteIcon(requirement.userVoted)]]"
                             on-tap=''>
@@ -205,7 +205,7 @@ Example:
               </span>
               <span>
                   <paper-button
-                          disabled="[[!_authorized]]">
+                          disabled="true">
                     <iron-icon
                             icon="[[_calculateFollowIcon(requirement.isFollower)]]"
                             on-tap=''>
@@ -252,12 +252,33 @@ Example:
       properties: {
 
         /**
-         * Computes if user is authorized.
+         * Access Token
+         */
+        accessToken: {
+          type: String,
+          value: ""
+        },
+        /**
+         * User authorization: Basic window.btoa('username':'sub')
+         */
+        authorization: {
+          type: String,
+          value: ""
+        },
+         /**
+         * OIDC Provider URL
+         */
+        oidc_provider: {
+          type: String,
+          value: ""
+        },
+
+        /**
+         * Is user authorized.
          */
         _authorized: {
           type: Boolean,
-          notify: true,
-          computed: '_isAuthorized()'
+          notify: true
         },
 
         /**
@@ -265,9 +286,10 @@ Example:
          * If authHeader is set, requirements-grid will use them for all requests.
          * If authHeader is set, requirements-grid will add functionality for logged in user.
          */
-        authHeader: {
+        _authHeader: {
           type: Object,
-          notify: true
+          notify: true,
+          computed: '_generateAuthHeader(accessToken, authorization, oidc_provider)'
         },
         /**
          * Computed resource URL to fetch categories.
@@ -657,12 +679,24 @@ Example:
       },
 
       /**
-       * Calculated if authHeader is set. Later this should also expect outdated tokens.
+       * Calculate authHeader
        *
+       * @param accessToken
+       * @param authorization
+       * @param oidc_provider
        * @private
        */
-      _isAuthorized: function() {
-        return this.authHeader.hasOwnProperty("access-token") && this.authHeader.hasOwnProperty("Authorization");
+      _generateAuthHeader: function(accessToken, authorization, oidc_provider) {
+        o = new Object();
+        if (accessToken != "" && authorization != "" && oidc_provider != "") {
+          o['access-token'] = accessToken;
+          o.authorization = authorization;
+          o.oidc_provider = oidc_provider;
+          this._authorized = true;
+        } else {
+          this._authorized = false;
+        }
+        return o;
       },
 
       /**
@@ -687,7 +721,7 @@ Example:
        * @private
        */
       _calculateFollowIcon: function(follow) {
-        if (this._authorized && (follow === 'true')) {
+        if (this._authorized && (follow === true)) {
           return 'bookmark';
         }
         return 'bookmark-border';
