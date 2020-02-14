@@ -8,6 +8,7 @@
 <link rel="import" href="../paper-item/paper-item.html">
 <link rel="import" href="../paper-menu/paper-menu.html">
 <link rel="import" href="../paper-tooltip/paper-tooltip.html">
+<link rel="import" href="../paper-toast/paper-toast.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../iron-icons/editor-icons.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
@@ -119,10 +120,11 @@ Example:
                params='{"per_page":"100"}'
                headers='[[_authHeader]]'
                handle-as="json"
+               ontent-type="application/json"
                on-response="_handleCategoriesResponse"
+               on-error="_errorHandler"
                last-response="{{_categories}}">
     </iron-ajax>
-
 
     <iron-ajax id="requirementsRequest"
                auto
@@ -131,8 +133,28 @@ Example:
                params='{{_requirementsRequestParams}}'
                headers="[[_authHeader]]"
                handle-as="json"
+               ontent-type="application/json"
                on-response="_showNextPage"
+               on-error="_errorHandler"
                last-response="{{requirements}}">
+    </iron-ajax>
+
+    <iron-ajax id="voteRequest"
+               headers="[[_authHeader]]"
+               handle-as="json"
+               content-type="application/json"
+               on-response="_handleVoteResponse"
+               on-error="_errorHandler">
+
+    </iron-ajax>
+
+    <iron-ajax id="followRequest"
+               headers="[[_authHeader]]"
+               handle-as="json"
+               content-type="application/json"
+               on-response="_handleFollowResponse"
+               on-error="_errorHandler">
+
     </iron-ajax>
 
     <div id="menu" class="layout horizontal wrap end">
@@ -185,63 +207,70 @@ Example:
 
     <div id="grid">
       <template is="dom-repeat" items="{{requirements}}" as="requirement" on-dom-change="_handleGridDomChange">
-        <div class="grid-item">
-          <paper-card heading="{{requirement.name}}">
-            <time is="relative-time" class="time"
-                  datetime$="[[requirement.creationDate]]">
-            </time>
-            <div class="card-content">{{requirement.description}}</div>
-            <div class="card-actions">
-              <span>
-                <paper-button
-                          disabled="true">
-                    <iron-icon
-                            icon="[[_calculateVoteIcon(requirement.userVoted)]]"
-                            on-tap=''>
-                    </iron-icon>
-                    {{requirement.upVotes}}
-                </paper-button>
-                <paper-tooltip>Votes</paper-tooltip>
-              </span>
-              <span>
+        <a href="[[_frontendBaseUrl]]/projects/[[projectId]]/categories/[[requirement.categories.0.id]]/requirements/[[requirement.id]]" target="_blank">
+          <div class="grid-item">
+            <paper-card heading="{{requirement.name}}">
+              <time is="relative-time" class="time"
+                    datetime$="[[requirement.creationDate]]">
+              </time>
+              <div class="card-content">{{requirement.description}}</div>
+              <div class="card-actions">
+                <span>
                   <paper-button
-                          disabled="true">
-                    <iron-icon
-                            icon="[[_calculateFollowIcon(requirement.isFollower)]]"
-                            on-tap=''>
-                    </iron-icon>
-                    {{requirement.numberOfFollowers}}
+                            disabled="[[!_authorized]]">
+                      <iron-icon
+                              icon="[[_calculateVoteIcon(requirement.userVoted)]]"
+                              on-tap='_vote'
+                              data-item$="[[requirement]]">
+                      </iron-icon>
+                      {{requirement.upVotes}}
                   </paper-button>
-                  <paper-tooltip>Followers</paper-tooltip>
-              </span>
-              <span>
-                  <paper-button
-                          disabled="true">
-                    <iron-icon
-                            icon="question-answer">
-                    </iron-icon>
-                    {{requirement.numberOfComments}}
-                  </paper-button>
-                  <paper-tooltip>Comments</paper-tooltip>
-              </span>
-              <span>
-                  <paper-button
-                          disabled="true">
-                    <iron-icon
-                            icon="editor:attach-file">
-                    </iron-icon>
-                    {{requirement.numberOfAttachments}}
-                  </paper-button>
-                  <paper-tooltip>Attachments</paper-tooltip>
-              </span>
-            </div>
-          </paper-card>
-        </div>
+                  <paper-tooltip>Votes</paper-tooltip>
+                </span>
+                <span>
+                    <paper-button
+                            disabled="[[!_authorized]]">
+                      <iron-icon
+                              icon="[[_calculateFollowIcon(requirement.isFollower)]]"
+                              on-tap='_follow'
+                              data-item$="[[requirement]]">
+                      </iron-icon>
+                      {{requirement.numberOfFollowers}}
+                    </paper-button>
+                    <paper-tooltip>Followers</paper-tooltip>
+                </span>
+                <span>
+                    <paper-button
+                            disabled="true">
+                      <iron-icon
+                              icon="question-answer">
+                      </iron-icon>
+                      {{requirement.numberOfComments}}
+                    </paper-button>
+                    <paper-tooltip>Comments</paper-tooltip>
+                </span>
+                <span>
+                    <paper-button
+                            disabled="true">
+                      <iron-icon
+                              icon="editor:attach-file">
+                      </iron-icon>
+                      {{requirement.numberOfAttachments}}
+                    </paper-button>
+                    <paper-tooltip>Attachments</paper-tooltip>
+                </span>
+              </div>
+            </paper-card>
+          </div>
+        </a>
       </template>
     </div>
 
     <paper-button id="previous" raised on-tap="previousPage">Previous Page</paper-button>
     <paper-button id="next" raised on-tap="nextPage">Next Page</paper-button>
+
+    <!-- Toast for app notifications: -->
+    <paper-toast id="toast"></paper-toast>
 
   </template>
 
@@ -708,9 +737,9 @@ Example:
        */
       _calculateVoteIcon: function(vote) {
         if (this._authorized && (vote === 'UP_VOTE')) {
-          return 'favorite';
+          return 'star';
         }
-        return 'favorite-border';
+        return 'star-border';
       },
 
       /**
@@ -726,6 +755,108 @@ Example:
         }
         return 'bookmark-border';
       },
+
+      /**
+       * Voting function.
+       *
+       *  @param e
+       *  @private
+       */
+      _vote: function(e) {
+        e.preventDefault(); // prevent hyperlink to requirement
+        var requirement = JSON.parse(e.target.dataset.item);
+        var request = this.$.voteRequest;
+        request.url = this._frontendBaseUrl + '/requirements/' + requirement.id + '/votes';
+        if (requirement.vote === 'NO_VOTE') {
+          request.method = 'POST';
+          // give user immediate feedback
+          e.target.setAttribute('icon', 'star');
+        } else {
+          request.method = 'DELETE';
+          // give user immediate feedback
+          e.target.setAttribute('icon', 'star-border');
+        }
+        request.generateRequest();
+      },
+
+      /**
+       * Event handler for the iron-ajax for submitting votes to the server.
+       *
+       * @param e
+       * @private
+       */
+      _handleVoteResponse: function(e) {
+        var status = e.detail.status;
+        var feedback;
+        if (status === 200) {
+          feedback = 'Successfully voted.';
+        } else if (status === 201) {
+          feedback = 'Deleted your vote successfully.';
+        } else {
+          feedback = 'Error';
+        }
+        this.$.toast.text = feedback;
+        this.$.toast.open();
+        // refresh the requirement
+        this.$.requirementRequest.generateRequest();
+      },
+
+      /**
+       * Following function.
+       *
+       *  @param e
+       *  @private
+       */
+      _follow: function(e) {
+        e.preventDefault(); // prevent hyperlink to requirement
+        var requirement = JSON.parse(e.target.dataset.item);
+        var request = this.$.voteRequest;
+        request.url = this._frontendBaseUrl + '/requirements/' + requirement.id + '/followers';
+        if (!requirement.isFollower) {
+          request.method = 'POST';
+          // give user immediate feedback
+          e.target.setAttribute('icon', 'bookmark');
+        } else {
+          request.method = 'DELETE';
+          // give user immediate feedback
+          e.target.setAttribute('icon', 'bookmark-border');
+        }
+        request.generateRequest();
+      },
+
+      /**
+       * Event handler for the iron-ajax for submitting follows to the server.
+       *
+       * @param e
+       * @private
+       */
+      _handleFollowResponse: function(e) {
+        var status = e.detail.status;
+        var feedback;
+        if (status === 200) {
+          feedback = 'Successfully following.';
+        } else if (status === 201) {
+          feedback = 'Deleted your following successfully.';
+        } else {
+          feedback = 'Error';
+        }
+        this.$.toast.text = feedback;
+        this.$.toast.open();
+        // refresh the requirement
+        this.$.requirementRequest.generateRequest();
+      },
+
+      /**
+       * Ajax Request Error Handler.
+       *
+       * @param e
+       * @param detail
+       * @private
+       */
+      _errorHandler: function (e, detail) {
+        this.$.toast.text = detail.error.message;
+        this.$.toast.open();
+      }
 
     });
   </script>
